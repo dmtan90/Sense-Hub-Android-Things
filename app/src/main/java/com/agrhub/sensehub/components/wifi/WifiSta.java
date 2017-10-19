@@ -48,6 +48,9 @@ public class WifiSta {
         wifiManager.disconnect();
         wifiManager.enableNetwork(networkId, true);
         mIsConnected = wifiManager.reconnect();
+        if(mIsConnected){
+
+        }
 
         return mIsConnected;
     }
@@ -68,9 +71,10 @@ public class WifiSta {
                 lstWifi = wifi.getScanResults();;
             }
         }, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
+        wifi.startScan();
 
         int i = 0;
-        while(i < 15){
+        while(i < 10){
             i++;
             try {
                 Thread.sleep(1000);

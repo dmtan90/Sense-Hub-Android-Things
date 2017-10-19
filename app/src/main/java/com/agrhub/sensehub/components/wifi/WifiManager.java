@@ -4,6 +4,8 @@ import android.content.Context;
 import android.net.wifi.ScanResult;
 import android.util.Log;
 
+import com.agrhub.sensehub.components.config.Config;
+
 import java.net.InetAddress;
 import java.util.List;
 
@@ -13,8 +15,8 @@ import java.util.List;
 
 public enum WifiManager {
     instance;
-    private String mApSSID = "SENSE HUB";
-    private String mApPWD = "12345678";
+    private String mApSSID = "";
+    private String mApPWD = "";
     private String mStaSSID = "";
     private String mStaPWD = "";
     private WifiAp mAP = null;
@@ -23,6 +25,11 @@ public enum WifiManager {
 
     public void init(Context ctx){
         mContext = ctx;
+        mApSSID = Config.instance.getApSSID();
+        mApPWD = Config.instance.getApPwd();
+        mStaSSID = Config.instance.getStaSSID();
+        mStaPWD = Config.instance.getStaPwd();
+
         if(mAP == null){
             mAP = new WifiAp(mContext);
         }
@@ -45,7 +52,13 @@ public enum WifiManager {
     }
 
     public boolean connectSTA(){
-        return mSTA.connect(mStaSSID, mStaPWD);
+        boolean rs = mSTA.connect(mStaSSID, mStaPWD);
+        if(rs){
+            Config.instance.setStaSSID(mStaSSID);
+            Config.instance.setStaPwd(mStaPWD);
+            Config.instance.store();
+        }
+        return rs;
     }
 
     public void setSTASSID(String ssid){

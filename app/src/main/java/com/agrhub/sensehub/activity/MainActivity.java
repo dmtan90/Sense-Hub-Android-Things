@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
 
+import com.agrhub.sensehub.components.config.Config;
 import com.agrhub.sensehub.components.devicemanager.DeviceManager;
 import com.agrhub.sensehub.components.webserver.WebService;
 import com.agrhub.sensehub.components.wifi.WifiManager;
@@ -33,6 +34,7 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.i(getClass().getSimpleName(), "Start MainActivity");
+        Config.instance.init(this);
         DeviceManager.instance.setContext(this);
         WifiManager.instance.init(this);
         try {

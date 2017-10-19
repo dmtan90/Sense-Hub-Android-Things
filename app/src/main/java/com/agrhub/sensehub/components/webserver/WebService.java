@@ -4,6 +4,7 @@ import android.content.Context;
 import android.net.wifi.ScanResult;
 import android.util.Log;
 
+import com.agrhub.sensehub.components.config.Config;
 import com.agrhub.sensehub.components.devicemanager.DeviceManager;
 import com.agrhub.sensehub.components.util.FileUtils;
 import com.agrhub.sensehub.components.util.NetworkUtils;
@@ -15,6 +16,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.KeyStore;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -49,6 +51,7 @@ public class WebService extends NanoHTTPD {
     private Response.Status HTTP_NOT_FOUND = Response.Status.NOT_FOUND;
     private Response.Status HTTP_BAD_REQUEST = Response.Status.BAD_REQUEST;
     private Response.Status HTTP_INTERNAL_ERROR = Response.Status.INTERNAL_ERROR;
+    private Response.Status HTTP_METHOD_NOT_ALLOWED = Response.Status.METHOD_NOT_ALLOWED;
 
     public static final String
             MIME_PLAINTEXT = "text/plain",
@@ -179,6 +182,9 @@ public class WebService extends NanoHTTPD {
             else if(uri.equals("/api/v1/scan_wifi")){
                 return apiGetWifis(session);
             }
+            else if(uri.equals("/api/v1/connect_wifi")){
+                return apiConnectWifi(session);
+            }
 
             if(!assetPath.equals("")){
                 mBuffer = mContext.getAssets().open(assetPath);
@@ -194,9 +200,8 @@ public class WebService extends NanoHTTPD {
                 }
             }
         }catch (Exception e){
-
+            e.printStackTrace();
         }
-
 
         Response response = newChunkedResponse(mStatus, mMimeType, mBuffer);
         if(isGzip){
@@ -206,9 +211,6 @@ public class WebService extends NanoHTTPD {
     }
 
     public Response apiGetData(IHTTPSession session){
-        String uri = session.getUri();
-        Method method = session.getMethod();
-        Map<String, String> params = session.getParms();
         InputStream mBuffer = null;
         String mMimeType = MIME_JSON;
         Response.Status mStatus = HTTP_OK;
@@ -219,14 +221,10 @@ public class WebService extends NanoHTTPD {
             e.printStackTrace();
         }
 
-        Response response = newChunkedResponse(mStatus, mMimeType, mBuffer);
-        return response;
+        return newChunkedResponse(mStatus, mMimeType, mBuffer);
     }
 
     public Response apiGetDevices(IHTTPSession session){
-        String uri = session.getUri();
-        Method method = session.getMethod();
-        Map<String, String> params = session.getParms();
         InputStream mBuffer = null;
         String mMimeType = MIME_JSON;
         Response.Status mStatus = HTTP_OK;
@@ -237,8 +235,7 @@ public class WebService extends NanoHTTPD {
             e.printStackTrace();
         }
 
-        Response response = newChunkedResponse(mStatus, mMimeType, mBuffer);
-        return response;
+        return newChunkedResponse(mStatus, mMimeType, mBuffer);
     }
 
     public Response apiGetWifis(IHTTPSession session){
@@ -262,7 +259,49 @@ public class WebService extends NanoHTTPD {
             e.printStackTrace();
         }
 
-        Response response = newChunkedResponse(mStatus, mMimeType, mBuffer);
-        return response;
+        return newChunkedResponse(mStatus, mMimeType, mBuffer);
+    }
+
+    public Response apiConnectWifi(IHTTPSession session){
+        Method method = session.getMethod();
+        try{
+            session.parseBody(new HashMap<String, String>());
+        }catch (Exception e){
+
+        }
+        Map<String, String> params = session.getParms();
+        InputStream mBuffer = null;
+        String mMimeType = MIME_JSON;
+        Response.Status mStatus = HTTP_OK;
+
+        if(!Method.POST.equals(method)){
+            mStatus = HTTP_METHOD_NOT_ALLOWED;
+            String mData = "";
+            try {
+                mBuffer = new ByteArrayInputStream(mData.getBytes("UTF-8"));
+            }catch (Exception e){
+
+            }
+            return newChunkedResponse(mStatus, mMimeType, mBuffer);
+        }
+
+        try{
+            String ssid = params.get("ssid");
+            String pwd = params.get("pwd");
+            Boolean isConnected = false;
+
+            if(ssid != null && pwd != null){
+                WifiManager.instance.setSTASSID(ssid);
+                WifiManager.instance.setSTAPWD(pwd);
+                isConnected = WifiManager.instance.connectSTA();
+            }
+
+            String mJson = String.format("{\"success\": %s}", isConnected ? "true" : "false");
+            mBuffer = new ByteArrayInputStream(mJson.getBytes("UTF-8"));
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+        return newChunkedResponse(mStatus, mMimeType, mBuffer);
     }
 }
