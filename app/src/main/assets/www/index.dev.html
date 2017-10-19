@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="shortcut icon" href="img/favicon.ico" type="image/x-icon" >
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+  <meta http-equiv='cache-control' content='no-cache'>
+  <meta http-equiv='expires' content='0'>
+  <meta http-equiv='pragma' content='no-cache'>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0"/>
+  <title>AGRHUB DASHBOARD</title>
+  
+  <style type="text/css">
+    @font-face {
+      font-family: 'material-icons';
+      src: url('fonts/material-icons.svg?t=1234567890') format('svg');
+      src: url('fonts/material-icons.woff2?t=1234567890') format('woff2');
+      font-weight: normal;
+      font-style: normal;
+    }
+
+    .material-icons {
+        font-family: 'material-icons';
+        font-weight: 400;
+        font-style: normal;
+        font-size: 24px;
+        line-height: 1;
+        letter-spacing: normal;
+        text-transform: none;
+        display: inline-block;
+        white-space: nowrap;
+        word-wrap: normal;
+        direction: ltr;
+        -webkit-font-feature-settings: liga;
+        -webkit-font-smoothing: antialiased
+    }
+
+    .icon-arrow-left:before { content: '\e800'; } /* '' */
+    .icon-arrow-right:before { content: '\e801'; } /* '' */
+    .icon-wifi:before { content: '\e802'; } /* '' */
+    .icon-menu:before { content: '\e803'; } /* '' */
+    .icon-lock:before { content: '\e804'; } /* '' */
+    .icon-arrow-down:before { content: '\e805'; } /* '' */
+    .icon-arrow-up:before { content: '\e806'; } /* '' */
+    .icon-check:before { content: '\e807'; } /* '' */
+    .icon-check-box-blank:before { content: '\e808'; } /* '' */
+    .icon-radio-button-unchecked:before { content: '\e809'; } /* '' */
+    .icon-radio-button-checked:before { content: '\e80a'; } /* '' */
+    .icon-ac-unit:before { content: '\e80b'; } /* '' */
+    .icon-bubble-chart:before { content: '\e80c'; } /* '' */
+    .icon-lightbulb-outline:before { content: '\e80d'; } /* '' */
+    .icon-water:before { content: '\e80e'; } /* '' */
+    .icon-opacity:before { content: '\e80f'; } /* '' */
+    .icon-toys:before { content: '\e810'; } /* '' */
+    .icon-flash-on:before { content: '\e811'; } /* '' */
+    .icon-battery:before { content: '\e812'; } /* '' */
+    .icon-file:before { content: '\e813'; } /* '' */
+    .icon-thermometer:before { content: '\f2c9'; } /* '' */
+
+    .m-b-0{margin-bottom: 0px !important;}
+    .m-t-0{margin-top: 0px !important;}
+    .m-l-0{margin-left: 0px !important;}
+    .m-r-0{margin-right: 0px !important;}
+    .no-margin{margin: 0px !important;}
+    .p-t-0{padding-top: 0px !important;}
+    .p-r-0{padding-right: 0px !important;}
+    .p-b-0{padding-bottom: 0px !important;}
+    .p-l-0{padding-left: 0px !important;}
+    .no-padding{padding: 0px !important;};
+  </style>
+
+  <!-- CSS  -->
+  <link href="css/style.min.css" type="text/css" rel="stylesheet" media="screen,projection"/>
+</head>
+<body class="grey lighten-5 navbar-fixed">
+  <div class="navbar-fixed">
+    <nav class="light-blue lighten-1" role="navigation">
+      <div class="nav-wrapper container">
+        <a id="logo-container" href="#" class="brand-logo" style="padding: 10px 0px"><img src="img/logo.png" height="40px" /></a>
+        <a href="#" data-activates="nav-mobile" class="button-collapse"><i class="material-icons icon-menu"></i></a>
+
+        <div class="input-field right white-text" style="margin:10px;width: 50px">
+          <select style="width: 150px" id="selLanguage">
+            <option value="vi" selected>VN</option>
+            <option value="en">EN</option>
+            <!--<option value="3">JP</option>
+            <option value="4">CN</option>-->
+          </select>
+        </div>
+
+        <ul id="nav-desktop" class="right hide-on-med-and-down desktop menu-nav">
+          <li class="tab col s3 active"><a class="active" href="#sta-setting-page">CÀI ĐẶT</a></li>
+          <li class="tab col s3"><a href="#dashboard-page">QUẢN LÝ</a></li>
+          <li class="tab col s3"><a href="#device-info-page">THÔNG TIN</a></li>
+        </ul>
+
+      </div>
+    </nav>
+  </div>
+
+  <ul id="nav-mobile" class="side-nav mobile menu-nav">
+    <li class="tab col s3 selected"><a class="active" href="#sta-setting-page">CÀI ĐẶT</a></li>
+    <li class="tab col s3"><a href="#dashboard-page">QUẢN LÝ</a></li>
+    <li class="tab col s3"><a href="#device-info-page">THÔNG TIN</a></li>
+  </ul>
+
+  <div id="preloader-container" class="preloader-wrapper small active" style="margin-left: calc(50% - 35px); margin-top: 20px;">
+    <div class="spinner-layer spinner-blue">
+      <div class="circle-clipper left">
+        <div class="circle"></div>
+      </div><div class="gap-patch">
+        <div class="circle"></div>
+      </div><div class="circle-clipper right">
+        <div class="circle"></div>
+      </div>
+    </div>
+
+    <div class="spinner-layer spinner-red">
+      <div class="circle-clipper left">
+        <div class="circle"></div>
+      </div><div class="gap-patch">
+        <div class="circle"></div>
+      </div><div class="circle-clipper right">
+        <div class="circle"></div>
+      </div>
+    </div>
+
+    <div class="spinner-layer spinner-yellow">
+      <div class="circle-clipper left">
+        <div class="circle"></div>
+      </div><div class="gap-patch">
+        <div class="circle"></div>
+      </div><div class="circle-clipper right">
+        <div class="circle"></div>
+      </div>
+    </div>
+
+    <div class="spinner-layer spinner-green">
+      <div class="circle-clipper left">
+        <div class="circle"></div>
+      </div><div class="gap-patch">
+        <div class="circle"></div>
+      </div><div class="circle-clipper right">
+        <div class="circle"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="sta-setting-page">
+    <div class="section no-pad-bot" id="index-banner">
+      <div class="container">
+        <br><br>
+        <h5 class="header center blue-text">BỘ ĐIỀU KHIỂN TRUNG TÂM</h5>
+        <!--<div class="row center">
+          <h5 class="header col s12 light">CẤU HÌNH THIẾT BỊ</h5>
+        </div>-->
+
+      </div>
+    </div>
+
+
+    <div class="">
+      <div class="section">
+
+        <!--   Icon Section   -->
+        <div class="row">
+          <div class="col s12 m6 l4 offset-m3 offset-l4">
+            <div class="card grey-text white darken-1">
+              <form>
+                <div class="card-content">
+                  <span class="card-title">CẤU HÌNH KẾT NỐI INTERNET</span>
+                  <p class="card-caption">Bộ điều khiển trung tâm cần kết nối với máy chủ thông qua mạng internet để gởi và nhận dữ liệu. Vui lòng cấu hình mạng internet gồm chọn mạng WiFi tại khu vực lắp đặt bộ điều khiển và mật khẩu tương ứng cho thiết bị</p>
+                  <div class="row margin-top-20">
+                    <div class="input-field col s12">
+                      <i class="material-icons prefix md-18 icon-wifi"></i>
+                      <select id="staSSID">
+                        <option value="" disabled selected>CHỌN MẠNG WIFI</option>
+                      </select>
+                      <label for="staSSID">MẠNG WIFI</label>
+                    </div>
+                    <div class="input-field col s12">
+                      <i class="material-icons prefix md-18 icon-lock"></i>
+                      <input id="staPWD" type="password" class="validate">
+                      <label for="staPWD">MẬT KHẨU</label>
+                    </div>
+                    <div class="input-field col s12">
+                      <p>
+                        <input type="checkbox" id="cmdShowPWD" />
+                        <label for="cmdShowPWD">HIỆN MẬT KHẨU</label>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div class="card-action" style="text-align: center;padding: 10px">
+                  <div class="row m-b-0" id="wifiActionPage">
+                    <div class="col s6">
+                      <a id="cmdScanWiFi" class="waves-effect waves-light btn btn-flat blue-text" href="javascript:;" style="width: 100%">DÒ WIFI</a>
+                    </div>
+                    <div class="col s6">
+                      <a id="cmdConnectWiFi" class="waves-effect waves-light btn btn-flat blue-text" href="javascript:;" style="width: 100%">KẾT NỐI</a>    
+                    </div>
+                  </div>
+                  <div class="row m-b-0" id="rebootActionPage" style="display: none;">
+                    <div class="col s12">
+                      <a id="cmdResetDevice" class="waves-effect waves-light btn btn-flat blue-text" href="javascript:;" style="width: 100%">KHỞI ĐỘNG THIẾT BỊ</a>
+                    </div>
+                  </div>
+                  
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div id="dashboard-page">
+    <div class="section no-pad-bot" id="index-banner">
+      <div class="container">
+        <br><br>
+        <h5 class="header center blue-text">QUẢN LÝ THIẾT BỊ</h5>
+
+      </div>
+    </div>
+
+
+    <div class="container">
+    	<div class="section" id="sensor-container">
+	      	    
+      </div>
+
+      <div class="section" id="device-container">
+        	
+      </div>
+    </div>
+  </div>
+
+  <div id="device-info-page">
+    <div class="section no-pad-bot" id="index-banner">
+      <div class="container">
+        <br><br>
+        <h5 class="header center blue-text">BỘ ĐIỀU KHIỂN TRUNG TÂM</h5>
+        <!--<div class="row center">
+          <h5 class="header col s12 light">THÔNG TIN THIẾT BỊ</h5>
+        </div>-->
+
+      </div>
+    </div>
+
+
+    <div class="container">
+      <div class="section">
+        <div class="row">
+          <div class="col s12 m6" id="device-info-container">
+            <div class="card grey-text white darken-1">
+              <form>
+                <div class="card-content">
+                  <span class="card-title">THÔNG TIN THIẾT BỊ</span>
+                  <p>Bộ điều khiển trung tâm được nghiên cứu và phát triển bởi công ty TNHH MTV TM DV AGRHUB. Mỗi thiết bị sẽ có mã số riêng để quản lý.</p>
+
+                  <div class="row margin-top-20">
+                    <div class="col s6">
+                      <h6 class="device-name">--</h6>
+                    </div>
+                    <div class="col s6">
+                      <h6 id="device_name" class="right">--</h6>
+                    </div>
+                  </div>
+                  
+                  <div class="row">
+                    <div class="col s6">
+                      <h6 class="device-mac-address">--</h6>
+                    </div>
+                    <div class="col s6">
+                      <h6 id="device_serial" class="right">--</h6>
+                    </div>
+                  </div>
+
+                  <div class="row">
+                    <div class="col s6">
+                      <h6 class="device-manufacture">--</h6>
+                    </div>
+                    <div class="col s6">
+                      <h6 id="device_company" class="right">--</h6>
+                    </div>
+                  </div>
+
+                  <div class="row">
+                    <div class="col s6">
+                      <h6 class="device-production-date">--</h6>
+                    </div>
+                    <div class="col s6">
+                      <h6 id="device_release_date" class="right">--</h6>
+                    </div>
+                  </div>
+
+                  <div class="row">
+                    <div class="col s6">
+                      <h6 class="device-hardware-version">--</h6>
+                    </div>
+                    <div class="col s6">
+                      <h6 id="device_hardware_version" class="right">--</h6>
+                    </div>
+                  </div>
+                  <div class="row center">
+                    <div class="col s12">
+                      <a id="cmdFactoryReset" class="waves-effect waves-light btn btn-flat blue-text" href="javascript:;" style="width: 100%">KHÔI PHỤC CÀI ĐẶT GỐC</a>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <div class="col s12 m6" id="device-software-container">
+            <div class="card grey-text white darken-1">
+              
+              <div class="card-content p-b-0">
+                <span class="card-title">CẬP NHẬT PHẦN MỀM</span>
+                <p class="card-caption">Chức năng này cho phép nhà quản trị cập nhật phần mềm cho thiết bị trong qua mạng LAN.</p>
+                <p class="red-text card-note">Lưu ý: việc cập nhật sai phần mềm điều khiển sẽ dẫn tới thiết bị không thể hoạt động. Chỉ tiến hành cập nhật khi hiểu rõ về thiết bị và cách cập nhật phần mềm</p>
+
+                <div class="row margin-top-20"">
+                  <div class="col s12">
+                    <ul class="tabs">
+                      <li class="tab col s6"><a class="active" href="#onlineOTAUpdate">CẬP NHẬT TRỰC TUYẾN</a></li>
+                      <li class="tab col s6"><a href="#localOTAUpdate">CẬP NHẬT NGOẠI TUYẾN</a></li>
+                    </ul>
+                  </div>
+                  <div id="onlineOTAUpdate" class="col s12">
+                    <div class="row">
+                      <div class="col s12 m6">
+                        <h6 class="software-version">--</h6>
+                      </div>
+                      <div class="col s12 m6">
+                        <h6 id="device_software_version" class="right">--</h6>
+                      </div>
+                    </div>
+
+                    <div class="row m-b-0">
+                      <div class="col s12 m6">
+                        <h6 class="software-release-date">--</h6>
+                      </div>
+                      <div class="col s12 m6">
+                        <h6 id="device_software_date" class="right">--</h6>
+                      </div>
+                    </div>
+                    <div class="row" id="new" style="display: none">
+                      <div class="col s12 m6">
+                        <h6 class="new-software-version">--</h6>
+                      </div>
+                      <div class="col s12 m6">
+                        <h6 id="device_new_software_version" class="right" update_url="">0.0.0</h6>
+                      </div>
+                    </div>
+                    <div class="row center">
+                      <div class="col s12">
+                        <a id="cmdCheckUpdateFirmware" class="waves-effect waves-light btn btn-flat blue-text" href="javascript:;" style="width: 100%">KIỂM TRA PHẦN MỀM</a>
+                        <a id="cmdOnlineUpdateFirmware" class="waves-effect waves-light btn btn-flat blue-text" href="javascript:;" style="width: 100%;display: none">CẬP NHẬT THIẾT BỊ</a>
+                      </div>
+                    </div>
+                  </div>
+                  <div id="localOTAUpdate" class="col s12">
+                    <form method="POST" id="localUpdateForm">
+                      <div class="row margin-top-20">
+                        <div class="input-field col s12">
+                          <i class="material-icons prefix md-18 icon-lock"></i>
+                          <input id="adminPWD" type="password" class="validate" name="admin_password">
+                          <label for="adminPWD">MẬT KHẨU QUẢN TRỊ</label>
+                        </div>
+                        <div class="file-field input-field col s12">
+                          
+                          <div class="file-path-wrapper p-l-0">
+                            <i class="material-icons prefix md-18 icon-file"></i>
+                            <input class="file-path validate" type="text" id="firmwarePath" style="width: 90%">
+                            <label for="firmwarePath">FIRMWARE PATH</label>
+                            <div class="btn" style="position: absolute;right: 10px;top: 0px;">
+                              <span>File</span>
+                              <input type="file" id="firmwareFile" name="file" accept=".bin">
+                            </div>
+                          </div>
+                          
+                      </div>
+
+                      <div class="row center">
+                        <div class="col s12">
+                          <a id="cmdLocalUpdateFirmware" class="waves-effect waves-light btn btn-flat blue-text" href="javascript:;" style="width: 100%">CẬP NHẬT THIẾT BỊ</a>
+                        </div>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+                
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <footer class="page-footer light-blue no-padding">
+    <div class="footer-copyright">
+      <div class="container">
+        <span>DESIGNED BY AGRHUB</span>
+        <span  class="right">www.agrhub.com</span>
+      </div>
+    </div>
+  </footer>
+  <script src="/js/core.js"></script>
+  </body>
+</html>
