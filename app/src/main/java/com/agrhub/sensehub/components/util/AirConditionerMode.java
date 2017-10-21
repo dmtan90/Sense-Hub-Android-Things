@@ -23,4 +23,38 @@ public enum AirConditionerMode {
     public int getValue() {
         return value;
     }
+
+    public String getValueString(){
+        String sValue = "";
+        switch (value){
+            case 0:
+                sValue = "normal";
+                break;
+            case 1:
+                sValue = "16";
+                break;
+            case 2:
+                sValue = "18";
+                break;
+            case 3:
+                sValue = "20";
+                break;
+            case 4:
+                sValue = "22";
+                break;
+            case 5:
+                sValue = "24";
+                break;
+            case 6:
+                sValue = "26";
+                break;
+            case 7:
+                sValue = "28";
+                break;
+            case 8:
+                sValue = "30";
+                break;
+        }
+        return sValue;
+    }
 }

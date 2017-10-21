@@ -3,6 +3,7 @@ package com.agrhub.sensehub.components.devicemanager;
 import android.app.ActivityManager;
 import android.content.Context;
 
+import com.agrhub.sensehub.components.entity.Entity;
 import com.agrhub.sensehub.components.util.DeviceName;
 import com.agrhub.sensehub.components.util.DeviceType;
 import com.agrhub.sensehub.components.util.NetworkUtils;
@@ -10,6 +11,8 @@ import com.agrhub.sensehub.components.util.UpdateState;
 import com.agrhub.sensehub.components.wifi.WifiManager;
 
 import java.util.Formatter;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by tanca on 10/18/2017.
@@ -25,10 +28,22 @@ public enum DeviceManager {
     public long   PRODUCT_RELEASE_DATE = 1508299694591L;
     public UpdateState   UPDATE_STATE = UpdateState.SW_UPDATE_MODE_STABLE;
 
+    Map<String, Entity> mDeviceMap = new HashMap<>();
+
     private Context mContext = null;
 
     public void setContext(Context ctx){
         mContext = ctx;
+    }
+
+    public Entity getDevice(String mac){
+        return mDeviceMap.get(mac);
+    }
+
+    public void setDevice(Entity device){
+        if(getDevice(device.getMacAddress()) == null){
+            mDeviceMap.put(device.getMacAddress(), device);
+        }
     }
 
     public String getDevicesJson(){
