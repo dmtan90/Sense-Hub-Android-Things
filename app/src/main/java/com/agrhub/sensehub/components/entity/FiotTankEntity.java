@@ -5,6 +5,7 @@ import com.agrhub.sensehub.components.util.ControllerState;
 import com.agrhub.sensehub.components.util.ControllerType;
 import com.agrhub.sensehub.components.util.DeviceName;
 import com.agrhub.sensehub.components.util.DeviceState;
+import com.agrhub.sensehub.components.util.DeviceType;
 import com.agrhub.sensehub.components.util.EcFormulaData;
 import com.agrhub.sensehub.components.util.LiquidLevelData;
 import com.agrhub.sensehub.components.util.LiquidThresholdData;
@@ -43,6 +44,7 @@ public class FiotTankEntity extends Entity{
         super();
         setDeviceName(DeviceName.DB_DEVICE_NAME_FIOT_SMART_TANK);
         setDeviceState(DeviceState.DEVICE_DISCONNECTED);
+        setDeviceType(DeviceType.DB_DEVICE_TYPE_CONTROLLER);
 
         this.mPH = -1;
         this.mPHThreshold.mMin = 0;
@@ -311,5 +313,10 @@ public class FiotTankEntity extends Entity{
                 getWaterPump().mControllerType.getValue(), getWaterPump().mControllerState.getValueString(),
                 getOxygenPump().mControllerType.getValue(), getOxygenPump().mControllerState.getValueString()
                 );
+    }
+
+    @Override
+    public void updateData() {
+
     }
 }

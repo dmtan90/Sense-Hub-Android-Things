@@ -48,6 +48,16 @@ public enum DeviceManager {
 
     public String getDevicesJson(){
         StringBuffer mBuffer = new StringBuffer();
+        StringBuffer mDevicesBuffer = new StringBuffer();
+        mDevicesBuffer.append("[");
+        for(Map.Entry<String, Entity> entity : mDeviceMap.entrySet()){
+            Entity device = entity.getValue();
+            if(mDevicesBuffer.length() > 1){
+                mDevicesBuffer.append(",");
+            }
+            mDevicesBuffer.append(device.toString());
+        }
+        mDevicesBuffer.append("]");
 
         mBuffer.append(String.format("{" +
                         "\"gateway_mac_address\":\"%s\"," +
@@ -61,7 +71,7 @@ public enum DeviceManager {
                 DeviceType.DB_DEVICE_TYPE_GATEWAY.getValue(),
                 System.currentTimeMillis(),
                 getFreeMem(),
-                "[]"));
+                mDevicesBuffer.toString()));
         return mBuffer.toString();
     }
 
@@ -93,5 +103,9 @@ public enum DeviceManager {
         activityManager.getMemoryInfo(mi);
         long availableMegs = mi.availMem / 1048576L;
         return availableMegs;
+    }
+
+    public Map<String, Entity> getDeviceMap(){
+        return mDeviceMap;
     }
 }

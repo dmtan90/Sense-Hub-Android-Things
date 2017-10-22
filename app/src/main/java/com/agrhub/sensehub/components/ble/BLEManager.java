@@ -19,9 +19,17 @@ import com.agrhub.sensehub.components.entity.TitagSensorEntity;
 import com.agrhub.sensehub.components.entity.nRF51822SensorEntity;
 import com.agrhub.sensehub.components.util.BleDeviceName;
 import com.agrhub.sensehub.components.util.DeviceName;
+import com.agrhub.sensehub.components.util.DeviceState;
+import com.agrhub.sensehub.components.util.DeviceType;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.UUID;
 
 /**
  * Created by tanca on 10/20/2017.
@@ -32,8 +40,54 @@ public enum BLEManager {
     private String mTAG = getClass().getSimpleName();
     private BluetoothAdapter mBluetoothAdapter;
     private boolean mScanning;
+    private boolean mPolling;
     private Handler mHandler;
-    private BleBroadcastReceiver mReceiver;
+    private BluetoothAdapter.LeScanCallback mBLECallback = new BluetoothAdapter.LeScanCallback() {
+        @Override
+        public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
+            // Add the name and address to an array adapter to show in a Toast
+            String derp = device.getName() + " - " + device.getAddress();
+            Log.d(mTAG, "Bluetooth device: " + derp);
+            Entity bleDevice = DeviceManager.instance.getDevice(device.getAddress());
+            if(bleDevice == null){
+                bleDevice = initDevice(device.getName());
+                if(bleDevice != null){
+                    bleDevice.setMacAddress(device.getAddress());
+                    DeviceManager.instance.setDevice(bleDevice);
+                }
+                else{
+                    return;
+                }
+            }
+            bleDevice.setDeviceState(DeviceState.DEVICE_CONNECTED);
+
+            if(bleDevice.getDeviceName().getValue() == DeviceName.DB_DEVICE_NAME_AXAET_AIR_SENSOR.getValue()){
+                if(scanRecord != null && scanRecord.length >= 32){
+                    boolean mHasData = true;
+                    for(int i = 25; i < 32; i++){
+                        Byte b = new Byte(scanRecord[i]);
+                        if(b.intValue() != 0){
+                            mHasData = false;
+                            break;
+                        }
+                    }
+
+                    if(mHasData){
+                        int mBattery = new Byte(scanRecord[11]).intValue();
+                        int mTemperature = new Byte(scanRecord[12]).intValue();
+                        int mHumidity = new Byte(scanRecord[13]).intValue();
+                        Log.d(mTAG, String.format("Axaet data=%d-%d-%d", mBattery, mTemperature, mHumidity));
+                        ((AxaetSensorEntity)bleDevice).setBattery(mBattery);
+                        ((AxaetSensorEntity)bleDevice).setAirTemperature(mTemperature);
+                        ((AxaetSensorEntity)bleDevice).setAirHumidity(mHumidity);
+                    }
+                }
+            }
+
+            //Log.d(mTAG, "BLE data=" + bleDevice.toString());
+        }
+    };
+    //private BleBroadcastReceiver mReceiver;
 
     // Stops scanning after 10 seconds.
     private static final long SCAN_PERIOD = 10000;
@@ -61,45 +115,60 @@ public enum BLEManager {
         if (mBluetoothAdapter.isDiscovering()) {
             mBluetoothAdapter.cancelDiscovery();
         }
+        mPolling = false;
+        mScanning = false;
 
         Timer t = new Timer();
         TimerTask mBleTask = new TimerTask() {
             @Override
-            public void run() {
-                scanBLEDevice(true);
+            public void run()
+            {
+                if(!mScanning && !mPolling){
+                    scanBLEDevice(true);
+                }
             }
         };
-        t.scheduleAtFixedRate(mBleTask, 5000, 10000);
+        t.scheduleAtFixedRate(mBleTask, 5000, 15000);
     }
 
     public void scanBLEDevice(final boolean enable) {
         Log.d(mTAG, "scanBLEDevice: " + enable);
+        mPolling = false;
+        mBluetoothAdapter.stopLeScan(mBLECallback);
         if (enable) {
-            if (mBluetoothAdapter.isDiscovering()) {
+            /*if (mBluetoothAdapter.isDiscovering()) {
                 mBluetoothAdapter.cancelDiscovery();
-            }
+            }*/
 
             // Stops scanning after a pre-defined scan period.
             mHandler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
                     mScanning = false;
-                    mBluetoothAdapter.cancelDiscovery();
+                    mBluetoothAdapter.stopLeScan(mBLECallback);
+                    pollDevices();
+                    //mBluetoothAdapter.cancelDiscovery();
                 }
             }, SCAN_PERIOD);
 
             mScanning = true;
-            mBluetoothAdapter.startDiscovery();
-            mReceiver = new BleBroadcastReceiver();
+            //mBluetoothAdapter.startDiscovery();
+
+            mBluetoothAdapter.startLeScan(mBLECallback);
+            /*mReceiver = new BleBroadcastReceiver();
             IntentFilter ifilter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
-            mContext.registerReceiver(mReceiver, ifilter);
+            mContext.registerReceiver(mReceiver, ifilter);*/
         } else {
             mScanning = false;
-            mBluetoothAdapter.cancelDiscovery();
+            //mBluetoothAdapter.stopLeScan(mBLECallback);
+            //mBluetoothAdapter.cancelDiscovery();
         }
     }
 
     public DeviceName getDeviceName(String name){
+        if(name == null){
+            return null;
+        }
         DeviceName mName = DeviceName.DB_DEVICE_NAME_UNKNOWN;
         if(name.contains(BleDeviceName.BLE_DEVICE_NAME_MIFLORA.getValue())){
             mName = DeviceName.DB_DEVICE_NAME_MI_FLORA;
@@ -138,7 +207,35 @@ public enum BLEManager {
         return mDevice;
     }
 
-    private class BleBroadcastReceiver extends BroadcastReceiver {
+    //get data of each BLE sensor
+    public void pollDevices(){
+        Log.d(mTAG, "pollDevices");
+        mPolling = true;
+        List<Entity> mBleDevices = new ArrayList<>();
+        for(Map.Entry<String, Entity> entity : DeviceManager.instance.getDeviceMap().entrySet()){
+            Entity mDev = entity.getValue();
+            if(mDev.getDeviceType().getValue() == DeviceType.DB_DEVICE_TYPE_SENSOR.getValue()){
+                mBleDevices.add(mDev);
+            }
+        }
+
+        for(Entity mBleDevice : mBleDevices){
+            if(mBleDevice.getDeviceState().getValue() == DeviceState.DEVICE_CONNECTED.getValue()){
+                mBleDevice.updateData();
+            }
+        }
+        mPolling = false;
+    }
+
+    public BluetoothAdapter getBleAdapter(){
+        return mBluetoothAdapter;
+    }
+
+    public Context getContext(){
+        return mContext;
+    }
+
+    /*private class BleBroadcastReceiver extends BroadcastReceiver {
 
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction(); //may need to chain this to a recognizing function
@@ -165,5 +262,5 @@ public enum BLEManager {
                 }
             }
         }
-    }
+    }*/
 }

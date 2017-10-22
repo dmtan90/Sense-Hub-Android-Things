@@ -5,6 +5,7 @@ import com.agrhub.sensehub.components.util.AirConditionerPower;
 import com.agrhub.sensehub.components.util.ControllerType;
 import com.agrhub.sensehub.components.util.DeviceName;
 import com.agrhub.sensehub.components.util.DeviceState;
+import com.agrhub.sensehub.components.util.DeviceType;
 
 /**
  * Created by tanca on 10/19/2017.
@@ -17,6 +18,7 @@ public class Rm3SmartRemoteEntity extends Sp3SmartPlugEntity {
         super();
         setDeviceName(DeviceName.DB_DEVICE_NAME_RM3_SMART_REMOTE);
         setDeviceState(DeviceState.DEVICE_DISCONNECTED);
+        setDeviceType(DeviceType.DB_DEVICE_TYPE_CONTROLLER);
         this.mACPower = AirConditionerPower.AIR_CONDITIONER_POWER_OFF;
         this.mACMode = AirConditionerMode.AIR_CONDITIONER_MODE_NORMAL;
         setControllerType(ControllerType.DEVICE_CMD_AIR_CONDITIONER);
@@ -45,5 +47,10 @@ public class Rm3SmartRemoteEntity extends Sp3SmartPlugEntity {
                 getControllerState().getValueString(),
                 getACPower().getValueString(),
                 getACMode().getValueString());
+    }
+
+    @Override
+    public void updateData() {
+        super.updateData();
     }
 }

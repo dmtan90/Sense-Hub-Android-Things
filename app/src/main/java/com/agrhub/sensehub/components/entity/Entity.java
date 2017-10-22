@@ -55,6 +55,7 @@ public abstract class Entity {
     }
 
     public abstract String getData();
+    public abstract void updateData();
 
     public String toString(){
         return String.format("{\"device_name\":%d,\"device_type\":%d,\"device_state\":%d,\"device_mac_address\":\"%s\",\"data\":%s}",

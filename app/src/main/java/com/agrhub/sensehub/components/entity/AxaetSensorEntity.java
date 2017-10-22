@@ -1,7 +1,16 @@
 package com.agrhub.sensehub.components.entity;
 
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothGatt;
+import android.bluetooth.BluetoothGattCallback;
+import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattDescriptor;
+import android.bluetooth.BluetoothGattServerCallback;
+
+import com.agrhub.sensehub.components.ble.BLEManager;
 import com.agrhub.sensehub.components.util.DeviceName;
 import com.agrhub.sensehub.components.util.DeviceState;
+import com.agrhub.sensehub.components.util.DeviceType;
 import com.agrhub.sensehub.components.util.SensorType;
 
 /**
@@ -17,6 +26,7 @@ public class AxaetSensorEntity extends Entity {
         super();
         setDeviceName(DeviceName.DB_DEVICE_NAME_AXAET_AIR_SENSOR);
         setDeviceState(DeviceState.DEVICE_DISCONNECTED);
+        setDeviceType(DeviceType.DB_DEVICE_TYPE_SENSOR);
         this.mAirHumidity = -1;
         this.mAirHumidity = -1;
         this.mBattery = -1;
@@ -44,6 +54,11 @@ public class AxaetSensorEntity extends Entity {
 
     public void setBattery(int mBattery) {
         this.mBattery = mBattery;
+    }
+
+    @Override
+    public void updateData() {
+        return;
     }
 
     @Override
