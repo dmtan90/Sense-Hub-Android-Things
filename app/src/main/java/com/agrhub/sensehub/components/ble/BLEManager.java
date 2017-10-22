@@ -187,6 +187,9 @@ public enum BLEManager {
 
     public Entity initDevice(String name){
         Entity mDevice = null;
+        if(name == null){
+            return mDevice;
+        }
         DeviceName mName = getDeviceName(name);
         if(mName.getValue() == DeviceName.DB_DEVICE_NAME_UNKNOWN.getValue()){
             return mDevice;
