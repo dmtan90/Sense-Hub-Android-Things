@@ -2,6 +2,29 @@
 
 Sense Hub Gateway is an important bridge between farm and end user. It's a wireless device to help collect data from the wireless sensors, which are installed on the farm such as light, air temperature, air humidity, soil humidity, soil nutrient, water pH, water EC ... The data is sent to our server by WiFi connection. On the server, the data is aggregated and also combined with the plant profile data to make decision turn on, turn off or control the devices on the farm such as lamp, water pump, misting pump, fan and air conditioner by automatically. The output from aggregation is sent to Sense Hub Gateway by MQTT to control the local devices on the farm.
 
+## Features
+
+- Web server dashboard configuration
+- Get data from bluetooth low energy (BLE) sensor
+- Control WiFi device: smart plug, smart remote, smart hydroponic controller, smart humidify...
+- MQTT
+![FarmBox work-flow](farmbox_workflow.png)
+
+## Supported Devices
+
+![Device supported](farmbox_supported_devices.png)
+### BLE devices
+
+- [MiFlora sensor](https://www.aliexpress.com/item/Original-English-Version-Mi-Flora-Monitor-Xiaomi-Flower-Care-Monitor-Soil-Water-Test-Machine-For-Garden/32804998987.html)
+- [Axaet air sensor](https://www.alibaba.com/product-detail/AXAET-Wireless-Proximity-ibeacon-BLE-temperature_60668543075.html)
+- [TI SensorTag](http://www.ti.com/ww/en/wireless_connectivity/sensortag/)
+- [nRF51822 Sensor Module](https://www.aliexpress.com/item/nRF51822-Bluetooth-4-0-BLE-SOC-Temperature-Atmospheric-Pressure-Acceleration-Sensor-Module-Gyroscope-Light-Sensor-MPU6050/32816579479.html)
+### WiFi device
+
+- [Broadlink SP mini 3](https://www.aliexpress.com/item/Broadlink-SP-Mini-Smart-Wireless-Remote-Control-Socket-Power-Supply-Plug-Wifi-Plug-timer-extender-time/32223307784.html)
+- [Broadlink RM mini 3](https://www.aliexpress.com/item/Broadlink-RM2-RM-PRO-Smart-Home-Automation-WiFi-IR-RF-Universal-Intelligent-Wireless-remote-Controller-for/32729931353.html)
+- FIOT smart hydroponic controller
+![FIOT smart hydroponic controller](farmbox_supported_devices.png)
 ## Pre-requisites
 
 - Android Things compatible board
@@ -12,8 +35,6 @@ Sense Hub Gateway is an important bridge between farm and end user. It's a wirel
 ## Schematics
 
 ![Schematics for Intel Edison](Schematic_edison.png)
-![Schematics for Raspberry Pi 3](Update soon)
-![Schematics for NXP](Update soon)
 
 ## Build and install
 
