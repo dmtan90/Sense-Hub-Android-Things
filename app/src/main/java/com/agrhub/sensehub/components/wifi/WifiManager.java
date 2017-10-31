@@ -19,6 +19,10 @@ import com.agrhub.sensehub.components.util.DeviceState;
 import com.agrhub.sensehub.components.util.DeviceType;
 import com.agrhub.sensehub.components.util.NetworkUtils;
 import com.agrhub.sensehub.components.util.WifiStaConnectionState;
+import com.stealthcopter.networktools.ARPInfo;
+import com.stealthcopter.networktools.Ping;
+import com.stealthcopter.networktools.ping.PingResult;
+import com.stealthcopter.networktools.ping.PingStats;
 
 import org.apache.commons.lang3.ArrayUtils;
 
@@ -27,6 +31,7 @@ import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Timer;
@@ -51,14 +56,14 @@ public enum WifiManager {
     private boolean mScanning = false;
     private boolean mPolling = false;
 
+    private Map<String, String> mDeviceMap = new HashMap<>();
+
     public void init(Context ctx){
         mContext = ctx;
         mApSSID = Config.instance.getApSSID();
         mApPWD = Config.instance.getApPwd();
         mStaSSID = Config.instance.getStaSSID();
         mStaPWD = Config.instance.getStaPwd();
-
-        mNetworkSniffTask = new NetworkSniffTask(mContext);
 
         if(mAP == null){
             mAP = new WifiAp(mContext);
@@ -125,9 +130,7 @@ public enum WifiManager {
         }
         if(mSTA.isConnected()){
             mStaState = WifiStaConnectionState.CONNECTED;
-
-
-            new NetworkSniffTask(mContext).execute();
+            //new NetworkSniffTask(mContext).execute();
         }
         else{
             mStaState = WifiStaConnectionState.DISCONNECTED;
@@ -178,6 +181,7 @@ public enum WifiManager {
         mPolling = false;
         if (enable) {
             mScanning = true;
+            mNetworkSniffTask = new NetworkSniffTask(mContext);
             mNetworkSniffTask.execute();
         } else {
             mScanning = false;
@@ -188,6 +192,41 @@ public enum WifiManager {
     public void pollLocalDevice(){
         Log.d(TAG, "pollLocalDevice");
         mPolling = true;
+        //discovery online device
+        Iterator it = mDeviceMap.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<String, String> item = (Map.Entry) it.next();
+            String macAddress = item.getKey();
+            String ip = item.getValue();
+            //check is Broadlink device
+            if(DeviceManager.instance.getDevice(macAddress) == null){
+                if(ip.equals("192.168.137.173")){
+                    BroadlinkConnector connector = new BroadlinkConnector();
+                    connector.setIP(ip);
+                    connector.setMac(macAddress);
+                    if(connector.discovery()){
+                        Log.d(TAG, "is Broadlink device");
+                        Entity entity = null;
+                        if(connector.getDevName().equals(DeviceName.DB_DEVICE_NAME_SP3_SMART_PLUG)){
+                            entity = new Sp3SmartPlugEntity();
+                            entity.setMacAddress(macAddress);
+                        }
+                        else if(connector.getDevName().equals(DeviceName.DB_DEVICE_NAME_RM3_SMART_REMOTE)){
+                            entity = new Rm3SmartRemoteEntity();
+                            entity.setMacAddress(macAddress);
+                        }
+
+                        if(entity != null){
+                            DeviceManager.instance.setDevice(entity);
+                        }
+                    }
+                }
+            }
+        }
+        for(Map.Entry<String, String> entry : mDeviceMap.entrySet()){
+
+        }
+
         List<Entity> mLocalDevices = new ArrayList<>();
         for(Map.Entry<String, Entity> entity : DeviceManager.instance.getDeviceMap().entrySet()){
             Entity mDev = entity.getValue();
@@ -220,6 +259,14 @@ public enum WifiManager {
 
     public void setPolling(boolean mPolling) {
         this.mPolling = mPolling;
+    }
+
+    public String getDevice(String mac) {
+        return mDeviceMap.get(mac);
+    }
+
+    public void put(String mac, String ip) {
+        mDeviceMap.put(mac, ip);
     }
 
     static class NetworkSniffTask extends AsyncTask<Void, Void, Void> {
@@ -262,43 +309,31 @@ public enum WifiManager {
                     Map<String, String> hosts = new HashMap<>();
 
                     for (int i = 0; i < 255; i++) {
-                        String testIp = prefix + String.valueOf(i);
-
-                        InetAddress address = InetAddress.getByName(testIp);
-                        boolean reachable = address.isReachable(1000);
-                        String hostName = address.getCanonicalHostName();
-
-                        if (reachable){
-                            NetworkInterface network = NetworkInterface.getByInetAddress(address);
-                            if(network != null){
-                                continue;
-                            }
-                            byte[] mac = network.getHardwareAddress();
-                            String macAddress = NetworkUtils.getMacAddressFromBytes(mac);
-                            Log.i(TAG, "Mac:" + macAddress + " Host: " + String.valueOf(hostName) + "(" + String.valueOf(testIp) + ") is reachable!");
-
-                            //check is Broadlink device
-                            if(DeviceManager.instance.getDevice(macAddress) == null){
-                                BroadlinkConnector connector = new BroadlinkConnector();
-                                connector.setIP(hostName);
-                                connector.setMac(macAddress);
-                                if(connector.discovery()){
-                                    Entity entity = null;
-                                    if(connector.getDevName().equals(DeviceName.DB_DEVICE_NAME_SP3_SMART_PLUG)){
-                                        entity = new Sp3SmartPlugEntity();
-                                        entity.setMacAddress(macAddress);
+                        String pingIp = prefix + String.valueOf(i);
+                        // Asynchronously
+                        Ping.onAddress(pingIp).setTimeOutMillis(1000).setTimes(5).doPing(new Ping.PingListener() {
+                            @Override
+                            public void onResult(PingResult pingResult) {
+                                if(pingResult.isReachable()){
+                                    String ip = pingResult.getAddress().getHostAddress();
+                                    String macAddress = ARPInfo.getMACFromIPAddress(ip);
+                                    if(macAddress == null){
+                                        return;
                                     }
-                                    else if(connector.getDevName().equals(DeviceName.DB_DEVICE_NAME_RM3_SMART_REMOTE)){
-                                        entity = new Rm3SmartRemoteEntity();
-                                        entity.setMacAddress(macAddress);
-                                    }
+                                    macAddress = macAddress.toUpperCase();
+                                    Log.i(TAG, "Mac:" + macAddress + " Host: " + String.valueOf(pingResult.getAddress().getHostName()) +
+                                            "(" + String.valueOf(ip) + ") is reachable!");
 
-                                    if(entity != null){
-                                        DeviceManager.instance.setDevice(entity);
-                                    }
+                                    WifiManager.instance.put(macAddress, ip);
                                 }
                             }
-                        }
+
+                            @Override
+                            public void onFinished(PingStats pingStats) {
+
+                            }
+                        });
+                        //PingResult pingResult = Ping.onAddress(pingIp).setTimeOutMillis(5000).doPing();
                     }
 
                     WifiManager.instance.scanLocalDevice(false);

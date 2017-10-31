@@ -48,8 +48,8 @@ public class BroadlinkConnector extends Connector {
         }
 
         //sync IP address
-        String ip = NetworkUtils.getIP(getMac());
-        setIP(ip);
+        //String ip = NetworkUtils.getIP(getMac());
+        //setIP(ip);
 
         int len = 80;
         int[] payload = new int[len];
@@ -135,7 +135,13 @@ public class BroadlinkConnector extends Connector {
         checksum = checksum & 0xffff;
         packet[0x20] = checksum & 0xff;
         packet[0x21] = checksum >> 8;
+        Log.d(TAG, "discovery- before");
+        PacketData.PrintPacket(packet);
+
         PacketData inputPacket = new PacketData(packet, len);
+
+        Log.d(TAG, "discovery- after");
+        PacketData.PrintPacket(inputPacket.getBuffer());
         PacketData outputPacket = NetworkUtils.sendUdpPacket(getIP(), mPort, inputPacket);
 
         if(outputPacket != null && outputPacket.getLength() < PacketData.MAX_LENGTH){

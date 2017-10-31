@@ -8,10 +8,14 @@ import android.util.Log;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.OutputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.InterfaceAddress;
 import java.net.NetworkInterface;
+import java.net.Socket;
+import java.text.Format;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
@@ -68,6 +72,17 @@ public class NetworkUtils {
         WifiManager wm = (WifiManager) ctx.getSystemService(Context.WIFI_SERVICE);
         String ip = Formatter.formatIpAddress(wm.getConnectionInfo().getIpAddress());
         return ip;
+    }
+
+    public static String getApIPV4Address(Context ctx){
+        if(ctx == null){
+            return "127.0.0.0";
+        }
+        WifiManager wm = (WifiManager) ctx.getSystemService(Context.WIFI_SERVICE);
+        String ip = Formatter.formatIpAddress(wm.getConnectionInfo().getIpAddress());
+        String apIP = ip.substring(0, ip.lastIndexOf(".") + 1) + "0";
+        Log.d(TAG, "AP: " + apIP);
+        return apIP;
     }
 
     @SuppressWarnings("ConstantConditions")
@@ -164,16 +179,41 @@ public class NetworkUtils {
         }
         try {
             InetAddress serverAddress = InetAddress.getByName(host);
-            Log.v(TAG, String.format("sendUdpPacket host=%s port=%d", host, port));
             DatagramSocket socket = new DatagramSocket();
-            if (!socket.getBroadcast())
+            /*if(!socket.getReuseAddress()){
+                socket.setReuseAddress(true);
+            }*/
+            /*if (!socket.getBroadcast()){
                 socket.setBroadcast(true);
+            }*/
+            StringBuffer buffer = new StringBuffer();
+            for(byte b : payload.getBuffer()){
+                buffer.append(String.format("%02X\t", b));
+            }
+            Log.d(TAG, "payload: " + buffer.toString());
+            Log.d(TAG, "serverAddress: " + serverAddress.getHostAddress());
             DatagramPacket packet = new DatagramPacket(payload.getBuffer(), payload.getLength(), serverAddress, port);
             socket.send(packet);
-            responseData = new PacketData();
-            DatagramPacket receivePacket = new DatagramPacket(responseData.getBuffer(), responseData.getLength());
-            socket.receive(receivePacket);
-            Log.d(TAG, "sendUdpPacket: length=" + responseData.getLength());
+            try{
+                /*responseData = new PacketData();
+                byte[] data = new byte[1024];
+                packet = new DatagramPacket(data, data.length);
+                socket.setSoTimeout(15000);
+                socket.receive(packet);
+                Log.d(TAG, "sendUdpPacket: length=" + data.length);*/
+                /*int retry = 0;
+                while(retry < 10){
+                    try{
+
+                        break;
+                    }catch (Exception e){
+                        retry++;
+                        //e.printStackTrace();
+                    }
+                }*/
+            }catch (Exception e){
+                e.printStackTrace();
+            }
             socket.close();
         } catch (Exception e) {
             Log.e(TAG, "sendUdpPacket: " + e.getMessage());
@@ -182,7 +222,7 @@ public class NetworkUtils {
         return responseData;
     }
 
-    public static String getIP(String hostMac){
+    /*public static String getIP(String hostMac){
         String ip = null;
         try{
             Enumeration<NetworkInterface> interfaces =
@@ -206,7 +246,7 @@ public class NetworkUtils {
 
         }
         return ip;
-    }
+    }*/
 
     public static String getMacAddressFromBytes(byte[] bytes){
         if(bytes == null){
@@ -218,4 +258,33 @@ public class NetworkUtils {
         }
         return macAddress.toString();
     }
+
+    /*public static String getMacFromIp(String ip){
+        String mac = null;
+        try{
+            String ipAddress = "104.1.168.192";
+            String dnsblDomain = "in-addr.arpa";
+            Record[] records;
+            Lookup lookup = new Lookup(ipAddress + "." + dnsblDomain, Type.PTR);
+            SimpleResolver resolver = new SimpleResolver();
+            resolver.setAddress(InetAddress.getByName("192.168.1.1"));
+            lookup.setResolver(resolver);
+            records = lookup.run();
+
+            if(lookup.getResult() == Lookup.SUCCESSFUL) {
+                for (int i = 0; i < records.length; i++) {
+                    if(records[i] instanceof PTRRecord) {
+                        PTRRecord ptr = (PTRRecord) records[i];
+                        ptr.rdataToWireCanonical();
+                        System.out.println("DNS Record: " + records[0].rdataToString());
+                    }
+                }
+            } else {
+                System.out.println("Failed lookup");
+            }
+        }catch (Exception e){
+
+        }
+        return mac;
+    }*/
 }

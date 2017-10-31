@@ -3,6 +3,7 @@ package com.agrhub.sensehub.activity;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.StrictMode;
 import android.util.Log;
 
 import com.agrhub.sensehub.components.ble.BLEManager;
@@ -37,6 +38,8 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.i(getClass().getSimpleName(), "Start MainActivity");
+        StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+        StrictMode.setThreadPolicy(policy);
         Config.instance.init(this);
         DeviceManager.instance.setContext(this);
         WifiManager.instance.init(this);

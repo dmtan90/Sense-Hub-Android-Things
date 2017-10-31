@@ -1,5 +1,7 @@
 package com.agrhub.sensehub.components.util;
 
+import android.util.Log;
+
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.IntBuffer;
@@ -9,6 +11,7 @@ import java.nio.IntBuffer;
  */
 
 public class PacketData {
+    private static final String TAG = PacketData.class.getSimpleName();
     public static int MAX_LENGTH = 4096;
     private byte[] mBuffer;
     private int mLength;
@@ -25,7 +28,7 @@ public class PacketData {
 
     public PacketData(int[] buffer, int length){
         this.mBuffer = ConvertToByteArray(buffer);
-        this.mLength = length;
+        this.mLength = this.mBuffer.length;
     }
 
     public byte[] getBuffer() {
@@ -53,11 +56,15 @@ public class PacketData {
     }
 
     public static byte[] ConvertToByteArray(int[] input){
-        ByteBuffer byteBuffer = ByteBuffer.allocate(input.length * 4);
+        /*ByteBuffer byteBuffer = ByteBuffer.allocate(input.length*4);
         IntBuffer intBuffer = byteBuffer.asIntBuffer();
-        intBuffer.put(input);
+        intBuffer.put(input);*/
+        byte[] output = new byte[input.length];
+        for(int i = 0; i < input.length; i++){
+            output[i] = (byte)input[i];
+        }
 
-        byte[] output = byteBuffer.array();
+        //byte[] output = byteBuffer.array();
         return output;
     }
 
@@ -69,5 +76,21 @@ public class PacketData {
         int[] output = new int[intBuf.remaining()];
         intBuf.get(output);
         return output;
+    }
+
+    public static void PrintPacket(int[] input){
+        StringBuffer buffer = new StringBuffer();
+        for(int i : input){
+            buffer.append(String.format("%02X\t", i));
+        }
+        Log.d(TAG, "PrintPacket: " + buffer.toString());
+    }
+
+    public static void PrintPacket(byte[] input){
+        StringBuffer buffer = new StringBuffer();
+        for(byte b : input){
+            buffer.append(String.format("%02X\t", b));
+        }
+        Log.d(TAG, "PrintPacket: " + buffer.toString());
     }
 }
