@@ -1,21 +1,13 @@
 # Sense Hub Android Things
 
-This sample shows integration of multiple Android Things peripheral to build a connected Weather Station.
+Sense Hub Gateway is an important bridge between farm and end user. It's a wireless device to help collect data from the wireless sensors, which are installed on the farm such as light, air temperature, air humidity, soil humidity, soil nutrient, water pH, water EC ... The data is sent to our server by WiFi connection. On the server, the data is aggregated and also combined with the plant profile data to make decision turn on, turn off or control the devices on the farm such as lamp, water pump, misting pump, fan and air conditioner by automatically. The output from aggregation is sent to Sense Hub Gateway by MQTT to control the local devices on the farm.
 
 ## Pre-requisites
 
 - Android Things compatible board
 - Android Studio 2.2+
-- [Rainbow Hat for Android Things](https://shop.pimoroni.com/products/rainbow-hat-for-android-things) or the following individual components:
-    - 1 [bmp280 temperature sensor](https://www.adafruit.com/product/2651)
-    - 1 [segment display with I2C backpack](https://www.adafruit.com/product/1270)
-    - 1 push button
-    - 1 resistor
-    - jumper wires
-    - 1 breadboard
-    - (optional) 1 [APA102 compatible RGB Led strip](https://www.adafruit.com/product/2241)
-    - (optional) 1 [Piezo Buzzer](https://www.adafruit.com/products/160)
-    - (optional) [Google Cloud Platform](https://cloud.google.com/) project
+- 1 [WS2812B compatible RGB Led strip](https://www.adafruit.com/product/1612)
+- 1 [Push-button](https://www.adafruit.com/product/1400)
 
 ## Schematics
 
