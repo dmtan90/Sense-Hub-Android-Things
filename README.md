@@ -1,4 +1,4 @@
-# Android Things Weather Station sample
+# Sense Hub Android Things
 
 This sample shows integration of multiple Android Things peripheral to build a connected Weather Station.
 
