@@ -49,18 +49,18 @@ Sense Hub Gateway is an important bridge between farm and end user. It's a wirel
 
 Before building, you must configure MQTT server configuration.
 For Google IoT Core service, open file /app/assets/config/config_iot_core.properties and edit
-_PROJECTID=your-project-id
-DEVICEID=your-device-id
-CLOUDREGION=your-region
-REGISTRYID=your-registry-id
-MQTTHOSTNAME=mqtt.googleapis.com
-MQTTPORT=8883_
+> PROJECTID=your-project-id
+> DEVICEID=your-device-id
+> CLOUDREGION=your-region
+> REGISTRYID=your-registry-id
+> MQTTHOSTNAME=mqtt.googleapis.com
+> MQTTPORT=8883
 
 For other MQTT server, open file /app/assets/config/config_mqtt.properties and edit
-_MQTTHOSTNAME=your-mqtt-ip-server
-MQTTPORT=your-mqtt-port
-MQTTUSERNAME=your-mqtt-username
-MQTTPASSWORD=your-mqtt-password_
+> MQTTHOSTNAME=your-mqtt-ip-server
+> MQTTPORT=your-mqtt-port
+> MQTTUSERNAME=your-mqtt-username
+> MQTTPASSWORD=your-mqtt-password
 
 On Android Studio, click on the "Run" button.
 If you prefer to run on the command line, type
