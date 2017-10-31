@@ -200,31 +200,26 @@ public enum WifiManager {
             String ip = item.getValue();
             //check is Broadlink device
             if(DeviceManager.instance.getDevice(macAddress) == null){
-                if(ip.equals("192.168.137.173")){
-                    BroadlinkConnector connector = new BroadlinkConnector();
-                    connector.setIP(ip);
-                    connector.setMac(macAddress);
-                    if(connector.discovery()){
-                        Log.d(TAG, "is Broadlink device");
-                        Entity entity = null;
-                        if(connector.getDevName().equals(DeviceName.DB_DEVICE_NAME_SP3_SMART_PLUG)){
-                            entity = new Sp3SmartPlugEntity();
-                            entity.setMacAddress(macAddress);
-                        }
-                        else if(connector.getDevName().equals(DeviceName.DB_DEVICE_NAME_RM3_SMART_REMOTE)){
-                            entity = new Rm3SmartRemoteEntity();
-                            entity.setMacAddress(macAddress);
-                        }
+                BroadlinkConnector connector = new BroadlinkConnector();
+                connector.setIP(ip);
+                connector.setMac(macAddress);
+                if(connector.discovery()){
+                    Log.d(TAG, "is Broadlink device");
+                    Entity entity = null;
+                    if(connector.getDevName().equals(DeviceName.DB_DEVICE_NAME_SP3_SMART_PLUG)){
+                        entity = new Sp3SmartPlugEntity();
+                        entity.setMacAddress(macAddress);
+                    }
+                    else if(connector.getDevName().equals(DeviceName.DB_DEVICE_NAME_RM3_SMART_REMOTE)){
+                        entity = new Rm3SmartRemoteEntity();
+                        entity.setMacAddress(macAddress);
+                    }
 
-                        if(entity != null){
-                            DeviceManager.instance.setDevice(entity);
-                        }
+                    if(entity != null){
+                        DeviceManager.instance.setDevice(entity);
                     }
                 }
             }
-        }
-        for(Map.Entry<String, String> entry : mDeviceMap.entrySet()){
-
         }
 
         List<Entity> mLocalDevices = new ArrayList<>();
