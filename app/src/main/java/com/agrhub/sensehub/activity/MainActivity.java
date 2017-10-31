@@ -1,12 +1,14 @@
 package com.agrhub.sensehub.activity;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 
 import com.agrhub.sensehub.components.ble.BLEManager;
 import com.agrhub.sensehub.components.config.Config;
 import com.agrhub.sensehub.components.devicemanager.DeviceManager;
+import com.agrhub.sensehub.components.mqtt.CloudPublisherService;
 import com.agrhub.sensehub.components.webserver.WebService;
 import com.agrhub.sensehub.components.wifi.WifiManager;
 
@@ -41,6 +43,7 @@ public class MainActivity extends Activity {
         BLEManager.instance.init(this);
         try {
             mServer = new WebService(this);
+            startService(new Intent(this, CloudPublisherService.class));
         }catch (Exception e){
             Log.e(getClass().getSimpleName(), e.toString());
         }

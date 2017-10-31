@@ -8,6 +8,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.AsyncTask;
 import android.os.Handler;
 import android.util.Log;
 
@@ -45,7 +46,9 @@ public enum BLEManager {
     private BluetoothAdapter.LeScanCallback mBLECallback = new BluetoothAdapter.LeScanCallback() {
         @Override
         public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
-            // Add the name and address to an array adapter to show in a Toast
+            if(device.getName() == null){
+                return;
+            }
             String derp = device.getName() + " - " + device.getAddress();
             Log.d(mTAG, "Bluetooth device: " + derp);
             Entity bleDevice = DeviceManager.instance.getDevice(device.getAddress());
@@ -117,7 +120,6 @@ public enum BLEManager {
         }
         mPolling = false;
         mScanning = false;
-
         Timer t = new Timer();
         TimerTask mBleTask = new TimerTask() {
             @Override
@@ -136,10 +138,6 @@ public enum BLEManager {
         mPolling = false;
         mBluetoothAdapter.stopLeScan(mBLECallback);
         if (enable) {
-            /*if (mBluetoothAdapter.isDiscovering()) {
-                mBluetoothAdapter.cancelDiscovery();
-            }*/
-
             // Stops scanning after a pre-defined scan period.
             mHandler.postDelayed(new Runnable() {
                 @Override
@@ -147,21 +145,13 @@ public enum BLEManager {
                     mScanning = false;
                     mBluetoothAdapter.stopLeScan(mBLECallback);
                     pollDevices();
-                    //mBluetoothAdapter.cancelDiscovery();
                 }
             }, SCAN_PERIOD);
 
             mScanning = true;
-            //mBluetoothAdapter.startDiscovery();
-
             mBluetoothAdapter.startLeScan(mBLECallback);
-            /*mReceiver = new BleBroadcastReceiver();
-            IntentFilter ifilter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
-            mContext.registerReceiver(mReceiver, ifilter);*/
         } else {
             mScanning = false;
-            //mBluetoothAdapter.stopLeScan(mBLECallback);
-            //mBluetoothAdapter.cancelDiscovery();
         }
     }
 
@@ -170,7 +160,8 @@ public enum BLEManager {
             return null;
         }
         DeviceName mName = DeviceName.DB_DEVICE_NAME_UNKNOWN;
-        if(name.contains(BleDeviceName.BLE_DEVICE_NAME_MIFLORA.getValue())){
+        if(name.contains(BleDeviceName.BLE_DEVICE_NAME_MIFLORA.getValue()) ||
+                name.contains(BleDeviceName.BLE_DEVICE_NAME_MIFLORA2.getValue())){
             mName = DeviceName.DB_DEVICE_NAME_MI_FLORA;
         }
         else if(name.contains(BleDeviceName.BLE_DEVICE_NAME_AXAET.getValue())){
@@ -237,33 +228,4 @@ public enum BLEManager {
     public Context getContext(){
         return mContext;
     }
-
-    /*private class BleBroadcastReceiver extends BroadcastReceiver {
-
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction(); //may need to chain this to a recognizing function
-            Log.d(mTAG, "BroadcastReceiver");
-            if (BluetoothDevice.ACTION_FOUND.equals(action)){
-                // Get the BluetoothDevice object from the Intent
-                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-
-                //ScanRecord record = intent.getParcelableExtra(BluetoothDevice);
-                // Add the name and address to an array adapter to show in a Toast
-                String derp = device.getName() + " - " + device.getAddress();
-                Log.d(mTAG, "Bluetooth device: " + derp);
-                Entity bleDevice = DeviceManager.instance.getDevice(device.getAddress());
-                if(bleDevice == null){
-                    bleDevice = initDevice(device.getName());
-                    if(bleDevice != null){
-                        bleDevice.setMacAddress(device.getAddress());
-                        if(bleDevice.getDeviceName().getValue() == DeviceName.DB_DEVICE_NAME_AXAET_AIR_SENSOR.getValue()){
-
-                        }
-
-                        DeviceManager.instance.setDevice(bleDevice);
-                    }
-                }
-            }
-        }
-    }*/
 }

@@ -2,6 +2,11 @@ package com.agrhub.sensehub.components.devicemanager;
 
 import android.app.ActivityManager;
 import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.net.wifi.WifiInfo;
+import android.os.AsyncTask;
+import android.util.Log;
 
 import com.agrhub.sensehub.components.entity.Entity;
 import com.agrhub.sensehub.components.util.DeviceName;
@@ -10,6 +15,11 @@ import com.agrhub.sensehub.components.util.NetworkUtils;
 import com.agrhub.sensehub.components.util.UpdateState;
 import com.agrhub.sensehub.components.wifi.WifiManager;
 
+import org.apache.commons.lang3.ArrayUtils;
+
+import java.lang.ref.WeakReference;
+import java.math.BigInteger;
+import java.net.InetAddress;
 import java.util.Formatter;
 import java.util.HashMap;
 import java.util.Map;

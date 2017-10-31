@@ -8,7 +8,9 @@ import com.agrhub.sensehub.components.config.Config;
 import com.agrhub.sensehub.components.devicemanager.DeviceManager;
 import com.agrhub.sensehub.components.util.FileUtils;
 import com.agrhub.sensehub.components.util.NetworkUtils;
+import com.agrhub.sensehub.components.util.WifiStaConnectionState;
 import com.agrhub.sensehub.components.wifi.WifiManager;
+import com.agrhub.sensehub.components.wifi.WifiSta;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
@@ -284,6 +286,7 @@ public class WebService extends NanoHTTPD {
             }
             return newChunkedResponse(mStatus, mMimeType, mBuffer);
         }
+        String mJson = "";
 
         try{
             String ssid = params.get("ssid");
@@ -293,15 +296,18 @@ public class WebService extends NanoHTTPD {
             if(ssid != null && pwd != null){
                 WifiManager.instance.setSTASSID(ssid);
                 WifiManager.instance.setSTAPWD(pwd);
-                isConnected = WifiManager.instance.connectSTA();
+                WifiStaConnectionState state = WifiManager.instance.connectSTA();
+                if(state == WifiStaConnectionState.CONNECTED){
+                    isConnected = true;
+                }
             }
 
-            String mJson = String.format("{\"success\": %s}", isConnected ? "true" : "false");
+            mJson = String.format("{\"success\": %s}", isConnected ? "true" : "false");
             mBuffer = new ByteArrayInputStream(mJson.getBytes("UTF-8"));
         }catch (Exception e){
             e.printStackTrace();
         }
 
-        return newChunkedResponse(mStatus, mMimeType, mBuffer);
+        return newFixedLengthResponse(mStatus, mMimeType, mJson);//newChunkedResponse(mStatus, mMimeType, mBuffer);
     }
 }

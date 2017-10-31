@@ -5,6 +5,7 @@ import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
+import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothProfile;
 import android.util.Log;
 
@@ -14,18 +15,33 @@ import com.agrhub.sensehub.components.util.DeviceState;
 import com.agrhub.sensehub.components.util.DeviceType;
 import com.agrhub.sensehub.components.util.SensorType;
 
+import java.util.Arrays;
+import java.util.UUID;
+
 /**
  * Created by tanca on 10/19/2017.
  */
 
 public class MiFloraSensorEntity extends Entity{
+    private final String MI_FLORA_SERVICE_ID = "00001204-0000-1000-8000-00805f9b34fb";
+    private final String MI_FLORA_ENABLE_DATA = "00001A00-0000-1000-8000-00805f9b34fb";
+    private final String MI_FLORA_GET_DATA = "00001A01-0000-1000-8000-00805f9b34fb";
+    private final String MI_FLORA_GET_FIRMWARE = "00001A02-0000-1000-8000-00805f9b34fb";
+    private final UUID UUID_MI_FLORA_SERVICE_ID = UUID.fromString(MI_FLORA_SERVICE_ID);
+    private final UUID UUID_MI_FLORA_ENABLE_DATA = UUID.fromString(MI_FLORA_ENABLE_DATA);
+    private final UUID UUID_MI_FLORA_GET_DATA = UUID.fromString(MI_FLORA_GET_DATA);
+    private final UUID UUID_MI_FLORA_FIRMWARE = UUID.fromString(MI_FLORA_GET_FIRMWARE);
+
     private String mTAG = getClass().getSimpleName();
     private int mLight;
     private int mAirTemperature;
     private int mSoilHumidity;
     private int mSoilEC;
     private int mBattery;
-    private BluetoothGatt mGatt;
+    private String mFirmware;
+
+    private BluetoothGattService mGattMiFloraService;
+    private boolean mIsConnecting;
 
     public MiFloraSensorEntity(){
         super();
@@ -94,10 +110,19 @@ public class MiFloraSensorEntity extends Entity{
 
     @Override
     public void updateData() {
+        mIsConnecting = true;
         BluetoothDevice device = BLEManager.instance.getBleAdapter().getRemoteDevice(getMacAddress());
-        mGatt = device.connectGatt(BLEManager.instance.getContext(), false, mGattCallback);
+        BluetoothGatt mGatt = device.connectGatt(BLEManager.instance.getContext(), false, mGattCallback);
         if(mGatt == null){
             Log.d(mTAG, "Can't connect to " + getMacAddress());
+            mIsConnecting = false;
+        }
+        while(mIsConnecting){
+            try{
+                Thread.sleep(500);
+            }catch (Exception e){
+
+            }
         }
     }
 
@@ -109,17 +134,81 @@ public class MiFloraSensorEntity extends Entity{
                 gatt.discoverServices();
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                 Log.i(mTAG, "Disconnected from GATT client");
+                mIsConnecting = false;
+            }
+        }
+
+        @Override
+        public void onServicesDiscovered(BluetoothGatt gatt, int status) {
+            if(status == BluetoothGatt.GATT_SUCCESS){
+                for(BluetoothGattService service : gatt.getServices()){
+                    Log.d(mTAG, "service: " + service.getUuid().toString());
+                }
+                //Log.d(mTAG, "mGattMiFloraService: " + UUID_MI_FLORA_SERVICE_ID.toString());
+                mGattMiFloraService = gatt.getService(UUID_MI_FLORA_SERVICE_ID);
+                if(mGattMiFloraService != null){
+                    boolean rs = gatt.readCharacteristic(mGattMiFloraService.getCharacteristic(UUID_MI_FLORA_FIRMWARE));
+                    if(!rs){
+                        Log.i(mTAG, "Can't read mGattMiFloraFwCharacteristic");
+                    }
+                }
+            }
+            else{
+                gatt.close();
+                mIsConnecting = false;
             }
         }
 
         @Override
         public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
-            super.onCharacteristicRead(gatt, characteristic, status);
+            if(status == BluetoothGatt.GATT_SUCCESS){
+                Log.d(mTAG, "characteristic: " + characteristic.getUuid().toString());
+                if(characteristic.equals(mGattMiFloraService.getCharacteristic(UUID_MI_FLORA_FIRMWARE))){
+                    byte[] datas = characteristic.getValue();
+                    int mBat = new Byte(datas[0]).intValue();
+                    mFirmware = "";
+                    for(int i = 1; i < datas.length; i++){
+                        Byte b = new Byte(datas[i]);
+                        if(b.intValue() >= 32 && b.intValue() <= 126){
+                            mFirmware += (char)(b&0xFF);
+                        }
+                    }
+                    setBattery(mBat);
+                    Log.d(mTAG, String.format("Battery=%d - Firmware=%s", mBat, mFirmware));
+
+                    //enable read data
+                    BluetoothGattCharacteristic mGattMiFloraEnableDataCharacteristic =
+                            mGattMiFloraService.getCharacteristic(UUID_MI_FLORA_ENABLE_DATA);
+                    byte[] mValue = {(byte)0xA0, (byte)0x1F};
+                    mGattMiFloraEnableDataCharacteristic.setValue(mValue);
+                    boolean rs = gatt.writeCharacteristic(mGattMiFloraEnableDataCharacteristic);
+                    if(!rs){
+                        Log.i(mTAG, "Can't write mGattMiFloraEnableDataCharacteristic");
+                    }
+                }
+                else if(characteristic.equals(mGattMiFloraService.getCharacteristic(UUID_MI_FLORA_GET_DATA))){
+                    byte[] datas = characteristic.getValue();
+                    if(datas.length > 9){
+                        mAirTemperature = ((datas[1]*0xFF) + datas[0])/10;
+                        mLight = (datas[4]*0xFF + datas[3]);
+                        mSoilHumidity = (datas[6]*0xFF + datas[7]);
+                        mSoilEC = (datas[9]*0xFF + datas[8]);
+                        Log.d(mTAG, String.format("Data=%s", getData()));
+                        gatt.close();
+                        mIsConnecting = false;
+                    }
+                }
+            }
         }
 
         @Override
         public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
-            super.onCharacteristicWrite(gatt, characteristic, status);
+            if(status == BluetoothGatt.GATT_SUCCESS){
+                boolean rs = gatt.readCharacteristic(mGattMiFloraService.getCharacteristic(UUID_MI_FLORA_GET_DATA));
+                if(!rs){
+                    Log.i(mTAG, "Can't read mGattMiFloraGetDataCharacteristic");
+                }
+            }
         }
     };
 }

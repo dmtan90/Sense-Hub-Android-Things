@@ -6,6 +6,7 @@ package com.agrhub.sensehub.components.util;
 
 public enum BleDeviceName {
     BLE_DEVICE_NAME_MIFLORA("Flower care"),
+    BLE_DEVICE_NAME_MIFLORA2("Flower mate"),
     BLE_DEVICE_NAME_AXAET("pBeacon"),
     BLE_DEVICE_NAME_TITAG("CC2650 SensorTag"),
     BLE_DEVICE_NAME_nRF51822("SENSOR");

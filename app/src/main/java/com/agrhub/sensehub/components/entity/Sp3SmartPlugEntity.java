@@ -1,11 +1,14 @@
 package com.agrhub.sensehub.components.entity;
 
+import com.agrhub.sensehub.components.connector.BroadlinkConnector;
+import com.agrhub.sensehub.components.connector.Sp3Connector;
 import com.agrhub.sensehub.components.util.ControllerData;
 import com.agrhub.sensehub.components.util.ControllerState;
 import com.agrhub.sensehub.components.util.ControllerType;
 import com.agrhub.sensehub.components.util.DeviceName;
 import com.agrhub.sensehub.components.util.DeviceState;
 import com.agrhub.sensehub.components.util.DeviceType;
+import com.agrhub.sensehub.components.util.NetworkUtils;
 
 /**
  * Created by tanca on 10/19/2017.
@@ -13,6 +16,7 @@ import com.agrhub.sensehub.components.util.DeviceType;
 
 public class Sp3SmartPlugEntity extends Entity{
     private ControllerData mController;
+    private Sp3Connector mConnector = null;
 
     public Sp3SmartPlugEntity(){
         super();
@@ -49,6 +53,27 @@ public class Sp3SmartPlugEntity extends Entity{
 
     @Override
     public void updateData() {
+        if(mConnector == null){
+            mConnector = new Sp3Connector();
+            mConnector.setMac(getMacAddress());
+            int i = 0;
+            while(!mConnector.authorize() && i < 3){
+                i++;
+            }
 
+            if(i >= 3){
+                return;
+            }
+        }
+        boolean state = mConnector.getState(true);
+        mController.mControllerState = (state ? ControllerState.CONTROLLER_STATE_ON : ControllerState.CONTROLLER_STATE_OFF);
+    }
+
+    public Sp3Connector getConnector() {
+        return mConnector;
+    }
+
+    public void setConnector(Sp3Connector mConnector) {
+        this.mConnector = mConnector;
     }
 }

@@ -70,7 +70,7 @@ public class WifiAp {
             wifiManager.setWifiEnabled(true);
         }
 
-        wifiManager.startLocalOnlyHotspot(new android.net.wifi.WifiManager.LocalOnlyHotspotCallback(){
+        /*wifiManager.startLocalOnlyHotspot(new android.net.wifi.WifiManager.LocalOnlyHotspotCallback(){
 
             @Override
             public void onStarted(android.net.wifi.WifiManager.LocalOnlyHotspotReservation reservation) {
@@ -92,7 +92,7 @@ public class WifiAp {
                 mIsEnabled = false;
             }
         },new Handler());
-        int mCounter = 0;
+        /*int mCounter = 0;
         while(mCounter < 10 && !mIsEnabled){
             mCounter++;
             try{
@@ -100,8 +100,41 @@ public class WifiAp {
             }catch (Exception e){
 
             }
-        }
+        }*/
 
         return mIsEnabled;
+    }
+
+    //check whether wifi hotspot on or off
+    public boolean isApOn() {
+        android.net.wifi.WifiManager wifiManager =
+                (android.net.wifi.WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
+        try {
+            Method method = wifiManager.getClass().getDeclaredMethod("isWifiApEnabled");
+            method.setAccessible(true);
+            return (Boolean) method.invoke(wifiManager);
+        }
+        catch (Throwable ignored) {}
+        return false;
+    }
+
+    // toggle wifi hotspot on or off
+    public boolean configApState() {
+        android.net.wifi.WifiManager wifiManager =
+                (android.net.wifi.WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
+        WifiConfiguration wificonfiguration = null;
+        try {
+            // if WiFi is on, turn it off
+            if(isApOn()) {
+                wifiManager.setWifiEnabled(false);
+            }
+            Method method = wifiManager.getClass().getMethod("setWifiApEnabled", WifiConfiguration.class, boolean.class);
+            method.invoke(wifiManager, wificonfiguration, !isApOn());
+            return true;
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 }

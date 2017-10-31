@@ -25,16 +25,31 @@ dependencies {
     androidTestImplementation 'com.android.support.test:runner:1.0.1'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
     compileOnly 'com.google.android.things:androidthings:+'
+
+    //for webserver
     compile group: 'org.nanohttpd', name: 'nanohttpd', version: '2.3.1'
     compile group: 'org.nanohttpd', name: 'nanohttpd-webserver', version: '2.3.1'
+    // for pubsub:
+    compile('com.google.api-client:google-api-client-android:1.22.0') {
+        exclude group: 'org.apache.httpcomponents'
+    }
+    compile('com.google.apis:google-api-services-pubsub:v1-rev12-1.22.0') {
+        exclude group: 'org.apache.httpcomponents'
+    }
 
-    //compile group: 'org.restlet.android', name: 'org.restlet', version: '2.3.12'
-    //compile group: 'org.restlet.android', name: 'org.restlet.ext.html', version: '2.3.12'
-    //compile group: 'org.restlet.android', name: 'org.restlet.ext.nio', version: '2.3.12'
-    //compile group: 'org.restlet.android', name: 'org.restlet.ext.json', version: '2.3.12'
-    //compile group: 'org.simpleframework', name: 'org.simpleframework', version: '4.1.1'
-    //compile group: 'org.restlet.android', name: 'org.restlet.ext.ssl', version: '2.2-M6'
-    //compile group: 'org.restlet.android', name: 'org.restlet.ext.jsslutils', version: '2.3.12'
+    // for MQTT:
+    compile('org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.1.0', {
+        exclude group: 'com.google.android', module: 'support-v4'
+    })
+    compile('org.eclipse.paho:org.eclipse.paho.android.service:1.0.2', {
+        exclude group: 'com.google.android', module: 'support-v4'
+    })
+    compile 'io.jsonwebtoken:jjwt:0.7.0'
 
+    // Helper libraries for MQTT support:
+    compile 'joda-time:joda-time:2.9.7'
+    compile 'commons-io:commons-io:2.5'
+
+    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.6'
 
 }

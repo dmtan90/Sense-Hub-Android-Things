@@ -12,6 +12,8 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.BLUETOOTH"/>
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <application>
         <uses-library android:name="com.google.android.things" />
 
@@ -23,6 +25,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <service
+            android:name="com.agrhub.sensehub.components.mqtt.CloudPublisherService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.agrhub.sensehub.components.mqtt.CONFIGURE" />
+            </intent-filter>
+        </service>
 
     </application>
 
