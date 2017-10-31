@@ -19,12 +19,14 @@ Sense Hub Gateway is an important bridge between farm and end user. It's a wirel
 - [Axaet air sensor](https://www.alibaba.com/product-detail/AXAET-Wireless-Proximity-ibeacon-BLE-temperature_60668543075.html)
 - [TI SensorTag](http://www.ti.com/ww/en/wireless_connectivity/sensortag/)
 - [nRF51822 Sensor Module](https://www.aliexpress.com/item/nRF51822-Bluetooth-4-0-BLE-SOC-Temperature-Atmospheric-Pressure-Acceleration-Sensor-Module-Gyroscope-Light-Sensor-MPU6050/32816579479.html)
+- ...
 ### WiFi device
 
 - [Broadlink SP mini 3](https://www.aliexpress.com/item/Broadlink-SP-Mini-Smart-Wireless-Remote-Control-Socket-Power-Supply-Plug-Wifi-Plug-timer-extender-time/32223307784.html)
 - [Broadlink RM mini 3](https://www.aliexpress.com/item/Broadlink-RM2-RM-PRO-Smart-Home-Automation-WiFi-IR-RF-Universal-Intelligent-Wireless-remote-Controller-for/32729931353.html)
 - FIOT smart hydroponic controller
-![FIOT smart hydroponic controller](farmbox_supported_devices.png)
+![FIOT smart hydroponic controller](fiot_hydroponic_controller.jpeg)
+- ...
 ## Pre-requisites
 
 - Android Things compatible board
@@ -80,16 +82,6 @@ Now your weather sensor data is continuously being published to [Google Cloud Pu
 
 ## License
 
-Copyright 2016 The Android Open Source Project, Inc.
-Licensed to the Apache Software Foundation (ASF) under one or more contributor
-license agreements.  See the NOTICE file distributed with this work for
-additional information regarding copyright ownership.  The ASF licenses this
-file to you under the Apache License, Version 2.0 (the "License"); you may not
-use this file except in compliance with the License.  You may obtain a copy of
-the License at
-  http://www.apache.org/licenses/LICENSE-2.0
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
-License for the specific language governing permissions and limitations under
-the License.
+[GNU General Public License v3.0](https://github.com/dmtan90/Sense-Hub-Android-Things/blob/master/LICENSE)
+
+If you have any question or want to cooperate, please contact us by email dmtan90@gmail.com.
