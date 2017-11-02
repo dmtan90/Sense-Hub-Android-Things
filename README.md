@@ -98,11 +98,12 @@ Detailed information about "device_name", "device_type", "controller_type", "sen
 
 ## Next steps
 
-Now your weather sensor data is continuously being published to [Google Cloud Pub/Sub](https://cloud.google.com/pubsub/):
-- process weather data with [Google Cloud Dataflow](https://cloud.google.com/dataflow/) or [Google Cloud Functions](https://cloud.google.com/functions/)
-- persist weather data in [Google Cloud Bigtable](https://cloud.google.com/bigtable/) or [BigQuery](https://cloud.google.com/bigquery/)
-- create some weather visualization with [Google Cloud Datalab](https://cloud.google.com/datalab/)
+Now your sensor data is continuously being published to [Google Cloud Pub/Sub](https://cloud.google.com/pubsub/):
+- process sensor data with [Google Cloud Dataflow](https://cloud.google.com/dataflow/) or [Google Cloud Functions](https://cloud.google.com/functions/) to control your farm
+- persist sensor data in [Google Cloud Bigtable](https://cloud.google.com/bigtable/) or [BigQuery](https://cloud.google.com/bigquery/)
+- create some sensor visualization with [Google Cloud Datalab](https://cloud.google.com/datalab/)
 - build weather prediction model with [Google Cloud Machine Learning](https://cloud.google.com/ml/)
+- build smart home model with this gateway
 
 ## License
 
