@@ -9,3 +9,7 @@
 .externalNativeBuild
 
 \.idea/
+
+app/src/main/assets/configs/config_iot_core\.properties
+
+app/src/main/assets/configs/config_mqtt\.properties

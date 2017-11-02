@@ -180,12 +180,13 @@ public class NetworkUtils {
         try {
             InetAddress serverAddress = InetAddress.getByName(host);
             DatagramSocket socket = new DatagramSocket();
-            /*if(!socket.getReuseAddress()){
+            //socket.connect(serverAddress, port);
+            if(!socket.getReuseAddress()){
                 socket.setReuseAddress(true);
-            }*/
-            /*if (!socket.getBroadcast()){
+            }
+            if (!socket.getBroadcast()){
                 socket.setBroadcast(true);
-            }*/
+            }
             StringBuffer buffer = new StringBuffer();
             for(byte b : payload.getBuffer()){
                 buffer.append(String.format("%02X\t", b));
@@ -195,12 +196,12 @@ public class NetworkUtils {
             DatagramPacket packet = new DatagramPacket(payload.getBuffer(), payload.getLength(), serverAddress, port);
             socket.send(packet);
             try{
-                /*responseData = new PacketData();
+                responseData = new PacketData();
                 byte[] data = new byte[1024];
                 packet = new DatagramPacket(data, data.length);
-                socket.setSoTimeout(15000);
+                socket.setSoTimeout(10000);
                 socket.receive(packet);
-                Log.d(TAG, "sendUdpPacket: length=" + data.length);*/
+                Log.d(TAG, "sendUdpPacket: length=" + data.length);
                 /*int retry = 0;
                 while(retry < 10){
                     try{
@@ -212,7 +213,7 @@ public class NetworkUtils {
                     }
                 }*/
             }catch (Exception e){
-                e.printStackTrace();
+                //e.printStackTrace();
             }
             socket.close();
         } catch (Exception e) {
