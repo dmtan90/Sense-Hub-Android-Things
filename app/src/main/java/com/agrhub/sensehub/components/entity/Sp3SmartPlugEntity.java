@@ -9,20 +9,22 @@ import com.agrhub.sensehub.components.util.DeviceName;
 import com.agrhub.sensehub.components.util.DeviceState;
 import com.agrhub.sensehub.components.util.DeviceType;
 import com.agrhub.sensehub.components.util.NetworkUtils;
+import com.agrhub.sensehub.components.wifi.WifiManager;
 
 /**
  * Created by tanca on 10/19/2017.
  */
 
 public class Sp3SmartPlugEntity extends Entity{
-    private ControllerData mController;
-    private Sp3Connector mConnector = null;
+    private ControllerData mController = null;
+    private BroadlinkConnector mConnector = null;
 
     public Sp3SmartPlugEntity(){
         super();
         setDeviceName(DeviceName.DB_DEVICE_NAME_SP3_SMART_PLUG);
         setDeviceState(DeviceState.DEVICE_DISCONNECTED);
         setDeviceType(DeviceType.DB_DEVICE_TYPE_CONTROLLER);
+        mController = new ControllerData();
 
         this.mController.mControllerType = ControllerType.DEVICE_CMD_UNKNOW;
         this.mController.mControllerState = ControllerState.CONTROLLER_STATE_UNKNOWN;
@@ -40,8 +42,16 @@ public class Sp3SmartPlugEntity extends Entity{
         return mController.mControllerState;
     }
 
-    public void setControllerState(ControllerState mControllerState) {
-        this.mController.mControllerState = mControllerState;
+    public boolean setControllerState(ControllerState mControllerState) {
+        boolean state = false;
+        if(mControllerState.equals(ControllerState.CONTROLLER_STATE_ON)){
+            state = true;
+        }
+        boolean rs = ((Sp3Connector)mConnector).setState(state);
+        if(rs){
+            this.mController.mControllerState = mControllerState;
+        }
+        return rs;
     }
 
     @Override
@@ -54,8 +64,11 @@ public class Sp3SmartPlugEntity extends Entity{
     @Override
     public void updateData() {
         if(mConnector == null){
+            String ip = WifiManager.instance.getDevice(getMacAddress());
             mConnector = new Sp3Connector();
             mConnector.setMac(getMacAddress());
+            mConnector.setIP(ip);
+            mConnector.setContext(getContext());
             int i = 0;
             while(!mConnector.authorize() && i < 3){
                 i++;
@@ -65,15 +78,15 @@ public class Sp3SmartPlugEntity extends Entity{
                 return;
             }
         }
-        boolean state = mConnector.getState(true);
+        boolean state = ((Sp3Connector)mConnector).getState(true);
         mController.mControllerState = (state ? ControllerState.CONTROLLER_STATE_ON : ControllerState.CONTROLLER_STATE_OFF);
     }
 
-    public Sp3Connector getConnector() {
+    public BroadlinkConnector getConnector() {
         return mConnector;
     }
 
-    public void setConnector(Sp3Connector mConnector) {
-        this.mConnector = mConnector;
+    public void setConnector(BroadlinkConnector mConnector) {
+        this.mConnector = (Sp3Connector) mConnector;
     }
 }

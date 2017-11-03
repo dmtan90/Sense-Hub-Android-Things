@@ -27,7 +27,7 @@ public class FiotTankEntity extends Entity{
     private ControllerData mValveInput;
     private ControllerData mValveOutput;
     private ControllerData mWashingMode;
-    private ControllerData mCalibrateMode;
+    private ControllerData mCalibratingMode;
     private ControllerData mWaterPump;
     private ControllerData mOxygenPump;
     private int mWaterPumpFreq;
@@ -72,8 +72,8 @@ public class FiotTankEntity extends Entity{
         this.mWashingMode.mControllerType = ControllerType.DEVICE_CMD_HYDRO_TANK_WASHING;
         this.mWashingMode.mControllerState = ControllerState.CONTROLLER_STATE_OFF;
 
-        this.mCalibrateMode.mControllerType = ControllerType.DEVICE_CMD_HYDRO_TANK_CALIBRATE;
-        this.mCalibrateMode.mControllerState = ControllerState.CONTROLLER_STATE_OFF;
+        this.mCalibratingMode.mControllerType = ControllerType.DEVICE_CMD_HYDRO_TANK_CALIBRATE;
+        this.mCalibratingMode.mControllerState = ControllerState.CONTROLLER_STATE_OFF;
 
         this.mWaterPump.mControllerType = ControllerType.DEVICE_CMD_PUMP;
         this.mWaterPump.mControllerState = ControllerState.CONTROLLER_STATE_OFF;
@@ -188,11 +188,11 @@ public class FiotTankEntity extends Entity{
     }
 
     public ControllerData getCalibrateMode() {
-        return mCalibrateMode;
+        return mCalibratingMode;
     }
 
     public void setCalibrateMode(ControllerData mCalibrateMode) {
-        this.mCalibrateMode = mCalibrateMode;
+        this.mCalibratingMode = mCalibrateMode;
     }
 
     public ControllerData getWaterPump() {
@@ -318,5 +318,28 @@ public class FiotTankEntity extends Entity{
     @Override
     public void updateData() {
 
+    }
+
+    public boolean setControllerState(ControllerType type, ControllerState state){
+        boolean rs = false;
+        if(type.equals(mValveInput)){
+            mValveInput.mControllerState = state;
+        }
+        else if(type.equals(mValveOutput)){
+
+        }
+        else if(type.equals(mWashingMode)){
+
+        }
+        else if(type.equals(mCalibratingMode)){
+
+        }
+        else if(type.equals(mWaterPump)){
+
+        }
+        else if(type.equals(mOxygenPump)){
+
+        }
+        return rs;
     }
 }

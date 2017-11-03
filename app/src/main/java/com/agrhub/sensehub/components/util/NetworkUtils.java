@@ -180,7 +180,6 @@ public class NetworkUtils {
         try {
             InetAddress serverAddress = InetAddress.getByName(host);
             DatagramSocket socket = new DatagramSocket();
-            //socket.connect(serverAddress, port);
             if(!socket.getReuseAddress()){
                 socket.setReuseAddress(true);
             }
@@ -196,22 +195,17 @@ public class NetworkUtils {
             DatagramPacket packet = new DatagramPacket(payload.getBuffer(), payload.getLength(), serverAddress, port);
             socket.send(packet);
             try{
-                responseData = new PacketData();
                 byte[] data = new byte[1024];
                 packet = new DatagramPacket(data, data.length);
                 socket.setSoTimeout(10000);
                 socket.receive(packet);
-                Log.d(TAG, "sendUdpPacket: length=" + data.length);
-                /*int retry = 0;
-                while(retry < 10){
-                    try{
-
-                        break;
-                    }catch (Exception e){
-                        retry++;
-                        //e.printStackTrace();
-                    }
-                }*/
+                Log.d(TAG, "sendUdpPacket: length=" + packet.getLength());
+                if(packet.getLength() > 0){
+                    responseData = new PacketData();
+                    responseData.setLength(packet.getLength());
+                    responseData.setBuffer(data);
+                    PacketData.PrintPacket(responseData.getBuffer());
+                }
             }catch (Exception e){
                 //e.printStackTrace();
             }

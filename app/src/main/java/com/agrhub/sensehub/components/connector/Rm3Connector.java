@@ -42,25 +42,26 @@ public class Rm3Connector extends BroadlinkConnector {
         return super.authorize();
     }
 
-    public void setState(AirConditionerState state){
+    public boolean setState(AirConditionerState state){
         //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         //Update power state: ON, OFF, LEAVE, ...
         //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         Log.d(TAG, "setState");
-
+        boolean rs = false;
         AirConditionerMode oldMode = state.getAcMode();
 
         mState = state;
 
         StringBuffer mBuffer = new StringBuffer();
+        IrCodeData irData = null;
 
         if(AirConditionerPower.AIR_CONDITIONER_POWER_ON == state.getAcPower()) {
             mBuffer.append(String.format("Sending PowerOn IR code len=%d", mIrCode.getIrPwrOn().getIrCodeLen()));
-            sendIRCode(mIrCode.getIrPwrOn());
+            irData = mIrCode.getIrPwrOn();
         }
         else if(AirConditionerPower.AIR_CONDITIONER_POWER_OFF == state.getAcPower()) {
             mBuffer.append(String.format("Sending PowerOff IR code len=%d", mIrCode.getIrPwrOff().getIrCodeLen()));
-            sendIRCode(mIrCode.getIrPwrOff());
+            irData = mIrCode.getIrPwrOff();
         }
         else if(AirConditionerPower.AIR_CONDITIONER_POWER_LEAVE == state.getAcPower()) {
             //Do nothing
@@ -68,14 +69,16 @@ public class Rm3Connector extends BroadlinkConnector {
         else {
             //Extension
         }
-
+        if(irData != null){
+            rs = sendIRCode(irData);
+        }
         Log.d(TAG, mBuffer.toString());
 
         //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         //Update working temperature: 12, 14, 16 ...
         //-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         mBuffer.setLength(0);
-
+        irData = null;
         if(AirConditionerMode.AIR_CONDITIONER_MODE_NORMAL == state.getAcMode()) {
             mState.setAcMode(oldMode);
         }
@@ -83,48 +86,54 @@ public class Rm3Connector extends BroadlinkConnector {
         if(AirConditionerMode.AIR_CONDITIONER_MODE_TEMP_16 != state.getAcMode()) {
             mBuffer.append(String.format("Sending Mode Temp %s*C IR code len=%d",
                     state.getAcMode().getValueString(), mIrCode.getIrTemp16().getIrCodeLen()));
-            sendIRCode(mIrCode.getIrTemp16());
+            irData = mIrCode.getIrTemp16();
         }
         else if(AirConditionerMode.AIR_CONDITIONER_MODE_TEMP_18 != state.getAcMode()) {
             mBuffer.append(String.format("Sending Mode Temp %s*C IR code len=%d",
                     state.getAcMode().getValueString(), mIrCode.getIrTemp18().getIrCodeLen()));
-            sendIRCode(mIrCode.getIrTemp18());
+            irData = mIrCode.getIrTemp18();
         }
         else if(AirConditionerMode.AIR_CONDITIONER_MODE_TEMP_20 != state.getAcMode()) {
             mBuffer.append(String.format("Sending Mode Temp %s*C IR code len=%d",
                     state.getAcMode().getValueString(), mIrCode.getIrTemp20().getIrCodeLen()));
-            sendIRCode(mIrCode.getIrTemp20());
+            irData = mIrCode.getIrTemp20();
         }
         else if(AirConditionerMode.AIR_CONDITIONER_MODE_TEMP_22 != state.getAcMode()) {
             mBuffer.append(String.format("Sending Mode Temp %s*C IR code len=%d",
                     state.getAcMode().getValueString(), mIrCode.getIrTemp22().getIrCodeLen()));
-            sendIRCode(mIrCode.getIrTemp22());
+            irData = mIrCode.getIrTemp22();
         }
         else if(AirConditionerMode.AIR_CONDITIONER_MODE_TEMP_24 != state.getAcMode()) {
             mBuffer.append(String.format("Sending Mode Temp %s*C IR code len=%d",
                     state.getAcMode().getValueString(), mIrCode.getIrTemp24().getIrCodeLen()));
-            sendIRCode(mIrCode.getIrTemp24());
+            irData = mIrCode.getIrTemp24();
         }
         else if(AirConditionerMode.AIR_CONDITIONER_MODE_TEMP_26 != state.getAcMode()) {
             mBuffer.append(String.format("Sending Mode Temp %s*C IR code len=%d",
                     state.getAcMode().getValueString(), mIrCode.getIrTemp26().getIrCodeLen()));
-            sendIRCode(mIrCode.getIrTemp26());
+            irData = mIrCode.getIrTemp26();
         }
         else if(AirConditionerMode.AIR_CONDITIONER_MODE_TEMP_28 != state.getAcMode()) {
             mBuffer.append(String.format("Sending Mode Temp %s*C IR code len=%d",
                     state.getAcMode().getValueString(), mIrCode.getIrTemp28().getIrCodeLen()));
-            sendIRCode(mIrCode.getIrTemp28());
+            irData = mIrCode.getIrTemp28();
         }
         else if(AirConditionerMode.AIR_CONDITIONER_MODE_TEMP_30 != state.getAcMode()) {
             mBuffer.append(String.format("Sending Mode Temp %s*C IR code len=%d",
                     state.getAcMode().getValueString(), mIrCode.getIrTemp30().getIrCodeLen()));
-            sendIRCode(mIrCode.getIrTemp30());
+            irData = mIrCode.getIrTemp30();
         }
         else{
             //Do nothing since no power
         }
 
+        if(irData != null){
+            rs = sendIRCode(irData);
+        }
+
         Log.d(TAG, mBuffer.toString());
+
+        return rs;
     }
 
     public AirConditionerState getACState(){
@@ -162,8 +171,7 @@ public class Rm3Connector extends BroadlinkConnector {
             //remove padding
             Log.d(TAG, String.format("learnIRCode: code len=%d", code.getIrCodeLen()));
 
-            for(int i = 0; i < code.getIrCodeLen(); i++)
-            {
+            for(int i = 0; i < code.getIrCodeLen(); i++) {
                 Log.d(TAG,String.format("0x%.02x ", code.getIrCodeData()[i]));
             }
 
@@ -235,8 +243,7 @@ public class Rm3Connector extends BroadlinkConnector {
         if(outputData == null || outputData.getLength() == 0 || outputData.getLength() <= UDP_PACKAGE_SIZE)
         {
             Log.e(TAG, "Fail to enter learning mode");
-            if(true == authorize())
-            {
+            if(true == authorize()) {
                 return EnterLearning();
             }
             return false;

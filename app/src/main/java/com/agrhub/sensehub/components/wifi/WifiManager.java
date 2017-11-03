@@ -203,6 +203,7 @@ public enum WifiManager {
                 BroadlinkConnector connector = new BroadlinkConnector();
                 connector.setIP(ip);
                 connector.setMac(macAddress);
+                connector.setContext(mContext);
                 if(connector.discovery()){
                     Log.d(TAG, "is Broadlink device");
                     Entity entity = null;
@@ -216,6 +217,8 @@ public enum WifiManager {
                     }
 
                     if(entity != null){
+                        entity.setContext(mContext);
+                        entity.updateData();
                         DeviceManager.instance.setDevice(entity);
                     }
                 }

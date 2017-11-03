@@ -5,6 +5,7 @@ package com.agrhub.sensehub.components.util;
  */
 
 public enum AirConditionerCmd {
+    AIR_CONDITIONER_CMD_UNKNOWN(-1),
     AIR_CONDITIONER_CMD_PWR_ON(0),
     AIR_CONDITIONER_CMD_PWR_OFF(1),
     AIR_CONDITIONER_CMD_TMP_16(2),
@@ -60,4 +61,41 @@ public enum AirConditionerCmd {
         return mStringValue;
     }
 
+    public static AirConditionerCmd getAcCmdFromString(String cmd){
+        AirConditionerCmd mAcCmd = AIR_CONDITIONER_CMD_UNKNOWN;
+        if(cmd == null){
+            return mAcCmd;
+        }
+        if(cmd.equals("cmd_on")){
+            mAcCmd = AIR_CONDITIONER_CMD_PWR_ON;
+        }
+        else if(cmd.equals("cmd_off")){
+            mAcCmd = AIR_CONDITIONER_CMD_PWR_OFF;
+        }
+        else if(cmd.equals("cmd_temp_16")){
+            mAcCmd = AIR_CONDITIONER_CMD_TMP_16;
+        }
+        else if(cmd.equals("cmd_temp_18")){
+            mAcCmd = AIR_CONDITIONER_CMD_TMP_18;
+        }
+        else if(cmd.equals("cmd_temp_20")){
+            mAcCmd = AIR_CONDITIONER_CMD_TMP_20;
+        }
+        else if(cmd.equals("cmd_temp_22")){
+            mAcCmd = AIR_CONDITIONER_CMD_TMP_22;
+        }
+        else if(cmd.equals("cmd_temp_24")){
+            mAcCmd = AIR_CONDITIONER_CMD_TMP_24;
+        }
+        else if(cmd.equals("cmd_temp_26")){
+            mAcCmd = AIR_CONDITIONER_CMD_TMP_26;
+        }
+        else if(cmd.equals("cmd_temp_28")){
+            mAcCmd = AIR_CONDITIONER_CMD_TMP_28;
+        }
+        else if(cmd.equals("cmd_temp_30")){
+            mAcCmd = AIR_CONDITIONER_CMD_TMP_30;
+        }
+        return mAcCmd;
+    }
 }

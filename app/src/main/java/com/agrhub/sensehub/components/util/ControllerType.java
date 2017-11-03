@@ -27,4 +27,15 @@ public enum ControllerType {
     public int getValue() {
         return value;
     }
+
+    public static ControllerType getControllerType(int value){
+        ControllerType mType = DEVICE_CMD_UNKNOW;
+        for(ControllerType type : ControllerType.values()){
+            if(type.getValue() == value){
+                mType = type;
+                break;
+            }
+        }
+        return mType;
+    }
 }

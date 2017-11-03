@@ -8,6 +8,7 @@ import com.agrhub.sensehub.components.util.NetworkUtils;
 import com.agrhub.sensehub.components.util.PacketData;
 import com.google.api.client.util.Base64;
 
+import java.net.InterfaceAddress;
 import java.util.Arrays;
 
 import javax.crypto.Cipher;
@@ -36,6 +37,11 @@ public class BroadlinkConnector extends Connector {
         mKey = DEFAULT_KEY;
         mIV = DEFAULT_IV;
         mPort = 80;
+        mID = new int[ID_SIZE];
+        mID[0] = 0;
+        mID[1] = 0;
+        mID[2] = 0;
+        mID[3] = 0;
     }
 
     @Override
@@ -84,7 +90,9 @@ public class BroadlinkConnector extends Connector {
 
         if(outputPacket == null || outputPacket.getLength() == PacketData.MAX_LENGTH
                 || outputPacket.getLength() == 0 || outputPacket.getLength() <= UDP_PACKAGE_SIZE){
-            Log.d(TAG, "authorize fail: len=" + outputPacket.getLength());
+            if(outputPacket != null){
+                Log.d(TAG, "authorize fail: len=" + outputPacket.getLength());
+            }
             return rs;
         }
 
@@ -114,16 +122,23 @@ public class BroadlinkConnector extends Connector {
     public boolean discovery(){
         Log.d(TAG, "discovery");
         boolean rs = false;
-        int len = 0x38;
+        int len = 0x30;
         int[] packet = new int[len];
         Arrays.fill(packet, 0x00);
+        String sIp = NetworkUtils.getIPV4Address(getContext());
+        Log.d(TAG, "Gateway IP=" + sIp);
+        if(sIp.equals("0.0.0.0")){
+            return rs;
+        }
+        String[] ip = sIp.split("\\.");
+
         packet[0x09] = 0;
         packet[0x0a] = 0;
         packet[0x0b] = 0;
-        packet[0x18] = 192;
-        packet[0x19] = 168;
-        packet[0x1a] = 4;
-        packet[0x1b] = 1;
+        packet[0x18] = Integer.valueOf(ip[0]);
+        packet[0x19] = Integer.valueOf(ip[1]);
+        packet[0x1a] = Integer.valueOf(ip[2]);
+        packet[0x1b] = Integer.valueOf(ip[3]);
         packet[0x1c] = mPort & 0xff;
         packet[0x1d] = mPort >> 8;
         packet[0x26] = 6;
@@ -135,13 +150,13 @@ public class BroadlinkConnector extends Connector {
         checksum = checksum & 0xffff;
         packet[0x20] = checksum & 0xff;
         packet[0x21] = checksum >> 8;
-        Log.d(TAG, "discovery- before");
-        PacketData.PrintPacket(packet);
+        //Log.d(TAG, "discovery- before");
+        //PacketData.PrintPacket(packet);
 
         PacketData inputPacket = new PacketData(packet, len);
 
-        Log.d(TAG, "discovery- after");
-        PacketData.PrintPacket(inputPacket.getBuffer());
+        //Log.d(TAG, "discovery- after");
+        //PacketData.PrintPacket(inputPacket.getBuffer());
         PacketData outputPacket = NetworkUtils.sendUdpPacket(getIP(), mPort, inputPacket);
 
         if(outputPacket != null && outputPacket.getLength() < PacketData.MAX_LENGTH){
@@ -171,7 +186,7 @@ public class BroadlinkConnector extends Connector {
             IvParameterSpec iv = new IvParameterSpec(PacketData.ConvertToByteArray(mIV));
             SecretKeySpec skeySpec = new SecretKeySpec(PacketData.ConvertToByteArray(mKey), "AES");
 
-            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING");
+            Cipher cipher = Cipher.getInstance("AES/CBC/NoPadding");
             cipher.init(Cipher.ENCRYPT_MODE, skeySpec, iv);
 
             byte[] encrypted = cipher.doFinal(input.getBuffer());
@@ -192,7 +207,7 @@ public class BroadlinkConnector extends Connector {
             IvParameterSpec iv = new IvParameterSpec(PacketData.ConvertToByteArray(mIV));
             SecretKeySpec skeySpec = new SecretKeySpec(PacketData.ConvertToByteArray(mKey), "AES");
 
-            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING");
+            Cipher cipher = Cipher.getInstance("AES/CBC/NoPadding");
             cipher.init(Cipher.DECRYPT_MODE, skeySpec, iv);
 
             byte[] original = cipher.doFinal(Base64.decodeBase64(input.getBuffer()));
@@ -207,7 +222,9 @@ public class BroadlinkConnector extends Connector {
 
     public PacketData sendPacket(int cmd, PacketData payload){
         PacketData outputData = null;
-        int length = UDP_PACKAGE_SIZE + payload.getLength();
+        int inputLength = payload.getLength();
+        int length = UDP_PACKAGE_SIZE + inputLength;
+        Log.d(TAG, "sendPacket: payload length=" + length);
         int[] packet = new int[length];
         //for example: aa:aa:aa:aa:aa:aa = 61613a61613a61613a61613a61613a6161
         byte[] mac = getMac().getBytes();
@@ -237,29 +254,26 @@ public class BroadlinkConnector extends Connector {
             packet[0x33] = mID[3];
 
             int checksum = 0xbeaf;
-            for(int i = 0; i < payload.getLength();i++)
+            for(int i = 0; i < inputLength;i++)
             {
                 checksum += payload.getBuffer()[i];
                 checksum = checksum & 0xffff;
             }
 
             PacketData encryptData = encrypt(payload);
-            if(encryptData == null)
-            {
+            if(encryptData == null) {
                 Log.e(TAG, "sendPacket: encrypt fail");
                 break;
             }
 
             packet[0x34] = checksum & 0xff;
             packet[0x35] = checksum >> 8;
-
-            for(int i = 0; i < encryptData.getLength(); i++)
-            {
+            Log.d(TAG, "sendPacket: encryptData length=" + inputLength);
+            for(int i = 0; i < inputLength; i++) {
                 packet[UDP_PACKAGE_SIZE + i] = encryptData.getBuffer()[i];
             }
             checksum = 0xbeaf;
-            for(int  i = 0 ; i < length; i++)
-            {
+            for(int  i = 0 ; i < length; i++) {
                 checksum += packet[i];
                 checksum = checksum & 0xffff;
             }

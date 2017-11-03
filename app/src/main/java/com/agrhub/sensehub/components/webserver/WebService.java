@@ -5,7 +5,20 @@ import android.net.wifi.ScanResult;
 import android.util.Log;
 
 import com.agrhub.sensehub.components.config.Config;
+import com.agrhub.sensehub.components.connector.Rm3Connector;
 import com.agrhub.sensehub.components.devicemanager.DeviceManager;
+import com.agrhub.sensehub.components.entity.Entity;
+import com.agrhub.sensehub.components.entity.FiotTankEntity;
+import com.agrhub.sensehub.components.entity.Rm3SmartRemoteEntity;
+import com.agrhub.sensehub.components.entity.Sp3SmartPlugEntity;
+import com.agrhub.sensehub.components.util.AirConditionerCmd;
+import com.agrhub.sensehub.components.util.AirConditionerMode;
+import com.agrhub.sensehub.components.util.AirConditionerPower;
+import com.agrhub.sensehub.components.util.AirConditionerState;
+import com.agrhub.sensehub.components.util.ControllerState;
+import com.agrhub.sensehub.components.util.ControllerType;
+import com.agrhub.sensehub.components.util.DeviceName;
+import com.agrhub.sensehub.components.util.DeviceType;
 import com.agrhub.sensehub.components.util.FileUtils;
 import com.agrhub.sensehub.components.util.NetworkUtils;
 import com.agrhub.sensehub.components.util.WifiStaConnectionState;
@@ -187,6 +200,12 @@ public class WebService extends NanoHTTPD {
             else if(uri.equals("/api/v1/connect_wifi")){
                 return apiConnectWifi(session);
             }
+            else if(uri.equals("/api/v1/device")){
+                return apiSetSwitch(session);
+            }
+            else if(uri.equals("/api/v1/ir_learning")){
+                return apiAcIrLearning(session);
+            }
 
             if(!assetPath.equals("")){
                 mBuffer = mContext.getAssets().open(assetPath);
@@ -309,5 +328,149 @@ public class WebService extends NanoHTTPD {
         }
 
         return newFixedLengthResponse(mStatus, mMimeType, mJson);//newChunkedResponse(mStatus, mMimeType, mBuffer);
+    }
+
+    public Response apiSetSwitch(IHTTPSession session) {
+        Method method = session.getMethod();
+        try{
+            session.parseBody(new HashMap<String, String>());
+        }catch (Exception e){
+
+        }
+        Map<String, String> params = session.getParms();
+        InputStream mBuffer = null;
+        String mMimeType = MIME_JSON;
+        Response.Status mStatus = HTTP_OK;
+
+        if(!Method.POST.equals(method)){
+            mStatus = HTTP_METHOD_NOT_ALLOWED;
+            String mData = "";
+            try {
+                mBuffer = new ByteArrayInputStream(mData.getBytes("UTF-8"));
+            }catch (Exception e){
+
+            }
+            return newChunkedResponse(mStatus, mMimeType, mBuffer);
+        }
+
+        try{
+            String mac = params.get("device_id");
+            String controllerState = params.get("device_state");
+            String controllerType = params.get("controller_type");
+            String controllerMode = params.get("controller_mode");
+            if(mac != null){
+                Entity device = DeviceManager.instance.getDevice(mac);
+                if(device != null){
+                    String mJson = "";
+                    boolean rs = false;
+                    ControllerState mState = ControllerState.CONTROLLER_STATE_OFF;
+                    ControllerType mType = ControllerType.DEVICE_CMD_UNKNOW;
+                    if(controllerState != null && controllerState.equals("true")){
+                        mState = ControllerState.CONTROLLER_STATE_ON;
+                    }
+
+                    if(controllerType != null){
+                        mType = ControllerType.getControllerType(Integer.valueOf(controllerType));
+                    }
+
+                    if(device.getDeviceName().equals(DeviceName.DB_DEVICE_NAME_SP3_SMART_PLUG)){
+                        rs = ((Sp3SmartPlugEntity)device).setControllerState(mState);
+                    }
+                    else if(device.getDeviceName().equals(DeviceName.DB_DEVICE_NAME_FIOT_SMART_TANK)){
+                        rs = ((FiotTankEntity)device).setControllerState(mType, mState);
+                    }
+                    else if(device.getDeviceName().equals(DeviceName.DB_DEVICE_NAME_RM3_SMART_REMOTE)){
+                        AirConditionerState mAcState = new AirConditionerState();
+                        if(mState.equals(ControllerState.CONTROLLER_STATE_ON)){
+                            mAcState.setAcPower(AirConditionerPower.AIR_CONDITIONER_POWER_ON);
+                        }
+                        AirConditionerMode mAcMode = AirConditionerMode.getAcModeFromString(controllerMode);
+                        mAcState.setAcMode(mAcMode);
+
+                        rs = ((Rm3SmartRemoteEntity)device).setACPower(mAcState.getAcPower()) &
+                                ((Rm3SmartRemoteEntity)device).setACMode(mAcState.getAcMode());
+                    }
+                    mJson = device.getData();
+                    mBuffer = new ByteArrayInputStream(mJson.getBytes("UTF-8"));
+                }
+                else{
+                    mStatus = HTTP_NOT_FOUND;
+                }
+            }
+            else{
+                mStatus = HTTP_NOT_FOUND;
+            }
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+        if(mStatus != HTTP_OK){
+            try {
+                String mData = "";
+                mBuffer = new ByteArrayInputStream(mData.getBytes("UTF-8"));
+            }catch (Exception e){
+
+            }
+        }
+        return newChunkedResponse(mStatus, mMimeType, mBuffer);
+    }
+
+    public Response apiAcIrLearning(IHTTPSession session){
+        Method method = session.getMethod();
+        try {
+            session.parseBody(new HashMap<String, String>());
+        } catch (Exception e) {
+
+        }
+        Map<String, String> params = session.getParms();
+        InputStream mBuffer = null;
+        String mMimeType = MIME_JSON;
+        Response.Status mStatus = HTTP_OK;
+        if(!Method.POST.equals(method)){
+            mStatus = HTTP_METHOD_NOT_ALLOWED;
+            String mData = "";
+            try {
+                mBuffer = new ByteArrayInputStream(mData.getBytes("UTF-8"));
+            }catch (Exception e){
+
+            }
+            return newChunkedResponse(mStatus, mMimeType, mBuffer);
+        }
+
+        try{
+            String mac = params.get("device_id");
+            String cmd = params.get("cmd");
+            if(mac != null){
+                Entity device = DeviceManager.instance.getDevice(mac);
+                if(device != null && device.getDeviceName().equals(DeviceName.DB_DEVICE_NAME_RM3_SMART_REMOTE)){
+                    String mJson = "";
+                    boolean rs = false;
+                    AirConditionerCmd acCmd = AirConditionerCmd.getAcCmdFromString(cmd);
+                    rs = ((Rm3SmartRemoteEntity)device).learningCMD(acCmd);
+                    mJson = String.format("{\"success\": %s}", rs ? "true" : "false");
+                    mBuffer = new ByteArrayInputStream(mJson.getBytes("UTF-8"));
+                }
+                else{
+                    mStatus = HTTP_NOT_FOUND;
+                }
+            }
+            else{
+                mStatus = HTTP_NOT_FOUND;
+            }
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+        if(mStatus != HTTP_OK){
+            try {
+                String mData = "";
+                mBuffer = new ByteArrayInputStream(mData.getBytes("UTF-8"));
+            }catch (Exception e){
+
+            }
+        }
+        return newChunkedResponse(mStatus, mMimeType, mBuffer);
     }
 }

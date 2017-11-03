@@ -57,4 +57,37 @@ public enum AirConditionerMode {
         }
         return sValue;
     }
+
+    public static AirConditionerMode getAcModeFromString(String mode){
+        AirConditionerMode mMode = AIR_CONDITIONER_MODE_NORMAL;
+        if(mode == null){
+            return mMode;
+        }
+        if(mode.equals("cmd_temp_16")){
+            mMode = AIR_CONDITIONER_MODE_TEMP_16;
+        }
+        else if(mode.equals("cmd_temp_18")){
+            mMode = AIR_CONDITIONER_MODE_TEMP_18;
+        }
+        else if(mode.equals("cmd_temp_20")){
+            mMode = AIR_CONDITIONER_MODE_TEMP_20;
+        }
+        else if(mode.equals("cmd_temp_22")){
+            mMode = AIR_CONDITIONER_MODE_TEMP_22;
+        }
+        else if(mode.equals("cmd_temp_24")){
+            mMode = AIR_CONDITIONER_MODE_TEMP_24;
+        }
+        else if(mode.equals("cmd_temp_26")){
+            mMode = AIR_CONDITIONER_MODE_TEMP_26;
+        }
+        else if(mode.equals("cmd_temp_28")){
+            mMode = AIR_CONDITIONER_MODE_TEMP_28;
+        }
+        else if(mode.equals("cmd_temp_30")){
+            mMode = AIR_CONDITIONER_MODE_TEMP_30;
+        }
+
+        return mMode;
+    }
 }

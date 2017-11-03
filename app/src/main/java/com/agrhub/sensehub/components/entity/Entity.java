@@ -1,5 +1,7 @@
 package com.agrhub.sensehub.components.entity;
 
+import android.content.Context;
+
 import com.agrhub.sensehub.components.util.DeviceName;
 import com.agrhub.sensehub.components.util.DeviceState;
 import com.agrhub.sensehub.components.util.DeviceType;
@@ -14,6 +16,7 @@ public abstract class Entity {
     private DeviceName mDeviceName;
     private DeviceType mDeviceType;
     private DeviceState mDeviceState;
+    private Context mContext;
 
     public Entity(){
         this.mMacAddress = "00:00:00:00:00:00";
@@ -56,6 +59,14 @@ public abstract class Entity {
 
     public abstract String getData();
     public abstract void updateData();
+
+    public Context getContext() {
+        return mContext;
+    }
+
+    public void setContext(Context mContext) {
+        this.mContext = mContext;
+    }
 
     public String toString(){
         return String.format("{\"device_name\":%d,\"device_type\":%d,\"device_state\":%d,\"device_mac_address\":\"%s\",\"data\":%s}",
