@@ -42,7 +42,7 @@ public enum BLEManager {
     private boolean mScanning;
     private boolean mPolling;
     private Handler mHandler;
-    private BluetoothAdapter.LeScanCallback mBLECallback = new BluetoothAdapter.LeScanCallback() {
+        private BluetoothAdapter.LeScanCallback mBLECallback = new BluetoothAdapter.LeScanCallback() {
         @Override
         public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
             // Add the name and address to an array adapter to show in a Toast
@@ -83,6 +83,14 @@ public enum BLEManager {
                     }
                 }
             }
+//            if(bleDevice.getDeviceName().getValue() == DeviceName.DB_DEVICE_NAME_MI_FLORA.getValue()){
+//                if(scanRecord != null && scanRecord.length >= 32){
+//
+//                    Log.d(mTAG,String.format("MIFLORA data=%d-%d-%d-%d",))
+//
+//                }
+//
+//            }
 
             //Log.d(mTAG, "BLE data=" + bleDevice.toString());
         }

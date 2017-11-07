@@ -4,6 +4,7 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothProfile;
 import android.util.Log;
 
@@ -13,14 +14,41 @@ import com.agrhub.sensehub.components.util.DeviceState;
 import com.agrhub.sensehub.components.util.DeviceType;
 import com.agrhub.sensehub.components.util.SensorType;
 
+import java.util.UUID;
+
 /**
  * Created by tanca on 10/19/2017.
  */
 
 public class TitagSensorEntity extends AxaetSensorEntity {
     private String mTAG = getClass().getSimpleName();
+    private int mBattery;
+    private int mTemperature;
+    private int mHumidity;
     private int mLight;
     private BluetoothGatt mGatt;
+    //Battery service
+    private final UUID TI_TAG_BATTERY_SERVICE_ID_16 = UUID.fromString("00001204-0000-1000-8000-00805f9b34fb");
+    private final UUID TI_TAG_BATTERY_DATA_READ_ID_16 = UUID.fromString("00001204-0000-1000-8000-00805f9b34fb");
+    //Humidity & Temperature service
+
+    private final UUID TI_TAG_TEMP_HUMID_SERVICE_ID_128 = UUID.fromString("00001204-0000-1000-8000-00805f9b34fb");
+    private final UUID TI_TAG_TEMP_HUMID_DATA_READ_ID_128 = UUID.fromString("00001204-0000-1000-8000-00805f9b34fb");
+    private final UUID TI_TAG_TEMP_HUMID_DATA_CONF_ID_128= UUID.fromString("00001204-0000-1000-8000-00805f9b34fb");
+
+    //Light service
+    private final UUID TI_TAG_LIGHT_SERVICE_ID_128 = UUID.fromString("00001204-0000-1000-8000-00805f9b34fb");
+    private final UUID TI_TAG_LIGHT_DATA_READ_ID_128 = UUID.fromString("00001204-0000-1000-8000-00805f9b34fb");
+    private final UUID TI_TAG_LIGHT_DATA_CONF_ID_128 = UUID.fromString("00001204-0000-1000-8000-00805f9b34fb");
+
+
+    //IR & Ambient temperature service
+
+    private final UUID TI_TAG_IR_TEMP_SERVICE_ID_128 = UUID.fromString("00001204-0000-1000-8000-00805f9b34fb");
+    private final UUID TI_TAG_IR_TEMP_DATA_READ_ID_128 = UUID.fromString("00001204-0000-1000-8000-00805f9b34fb");
+    private final UUID TI_TAG_IR_TEMP_DATA_CONF_ID_128 = UUID.fromString("00001204-0000-1000-8000-00805f9b34fb");
+
+
 
     public TitagSensorEntity(){
         super();
@@ -30,12 +58,37 @@ public class TitagSensorEntity extends AxaetSensorEntity {
         this.mLight = -1;
     }
 
+
     public int getLight() {
         return mLight;
     }
 
     public void setLight(int mLight) {
         this.mLight = mLight;
+    }
+
+    public int getBattery() {
+        return mBattery;
+    }
+
+    public void setBattery(int mBattery) {
+        this.mBattery = mBattery;
+    }
+
+    public int getTemperature() {
+        return mTemperature;
+    }
+
+    public void setTemperature(int mTemperature) {
+        this.mTemperature = mTemperature;
+    }
+
+    public int getHumidity() {
+        return mHumidity;
+    }
+
+    public void setHumidity(int mHumidity) {
+        this.mHumidity = mHumidity;
     }
 
     @Override
@@ -72,13 +125,94 @@ public class TitagSensorEntity extends AxaetSensorEntity {
         }
 
         @Override
+        public void onServicesDiscovered(BluetoothGatt gatt, int status) {
+            if (status == BluetoothGatt.GATT_SUCCESS) {
+                BluetoothGattService batteryService = gatt.getService(TI_TAG_BATTERY_SERVICE_ID_16);
+                BluetoothGattCharacteristic cBattery = batteryService.getCharacteristic(TI_TAG_BATTERY_DATA_READ_ID_16);
+                gatt.readCharacteristic(cBattery);
+            }
+        }
+
+        @Override
         public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
-            super.onCharacteristicRead(gatt, characteristic, status);
+            if(status == BluetoothGatt.GATT_SUCCESS){
+                if(characteristic.getUuid().equals(TI_TAG_BATTERY_DATA_READ_ID_16)){
+                    byte[] data = characteristic.getValue();
+                    mBattery = new Byte(data[0]).intValue();
+                    Log.i(mTAG,String.format("Battery: %d",mBattery));
+                    // Write characteristis Humidity & Temperature
+                    final byte[] mValue = {(byte)0x01};
+                    gatt.getService(TI_TAG_TEMP_HUMID_SERVICE_ID_128).getCharacteristic(TI_TAG_TEMP_HUMID_DATA_CONF_ID_128).setValue(mValue);
+                    gatt.writeCharacteristic(gatt.getService(TI_TAG_TEMP_HUMID_SERVICE_ID_128).getCharacteristic(TI_TAG_TEMP_HUMID_DATA_CONF_ID_128));
+
+
+                }
+                if(characteristic.getUuid().equals(TI_TAG_TEMP_HUMID_DATA_READ_ID_128)){
+                    byte[] data = characteristic.getValue();
+                    if(data.length == 4){
+                        int rawTmp,rawHum;
+
+                        rawTmp = ( data[0]|(data[1]<<8));
+
+
+                        rawHum =(data[2]|(data[3]<<8));
+
+
+                        mTemperature = (rawTmp / 65536)*165 - 40;
+                        mHumidity = (rawHum / 65536)*100;
+
+                        // write Characteristic IR TEM
+                        final byte[] mValue = {(byte)0x01};
+                        gatt.getService(TI_TAG_IR_TEMP_SERVICE_ID_128).getCharacteristic(TI_TAG_IR_TEMP_DATA_CONF_ID_128).setValue(mValue);
+                        gatt.writeCharacteristic(gatt.getService(TI_TAG_IR_TEMP_SERVICE_ID_128).getCharacteristic(TI_TAG_IR_TEMP_DATA_CONF_ID_128));
+                    }
+                }
+                if(characteristic.getUuid().equals(TI_TAG_IR_TEMP_DATA_READ_ID_128)){
+                    //get data IR TEM
+
+                    // Write Characteristic Light
+                    final byte[] mValue = {(byte)0x01};
+                    gatt.getService(TI_TAG_LIGHT_SERVICE_ID_128).getCharacteristic(TI_TAG_LIGHT_DATA_CONF_ID_128).setValue(mValue);
+                    gatt.writeCharacteristic(gatt.getService(TI_TAG_LIGHT_SERVICE_ID_128).getCharacteristic(TI_TAG_LIGHT_DATA_CONF_ID_128));
+                }
+                if(characteristic.getUuid().equals(TI_TAG_LIGHT_DATA_READ_ID_128)){
+                    byte[] data = characteristic.getValue();
+                    if(data.length == 2){
+
+
+                        // Ligh converter
+                        int rawdata = (data[0]|(data[1]<<8));
+                        int m = rawdata & 0x0FFF;
+                        int e = (rawdata & 0xF000) >> 12;
+                        e = (e == 0) ? 1 : 2 << (e - 1);
+                        mLight = (int)(m * (0.01 * e));
+                        gatt.close();
+
+                    }
+                }
+            }
         }
 
         @Override
         public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
-            super.onCharacteristicWrite(gatt, characteristic, status);
+            if(status == BluetoothGatt.GATT_SUCCESS){
+                if(characteristic.getUuid().equals(TI_TAG_TEMP_HUMID_DATA_CONF_ID_128)){
+                    BluetoothGattCharacteristic cTmp_hum = gatt.getService(TI_TAG_TEMP_HUMID_SERVICE_ID_128).getCharacteristic(TI_TAG_TEMP_HUMID_DATA_READ_ID_128);
+                    gatt.readCharacteristic(cTmp_hum);
+                }
+                if(characteristic.getUuid().equals(TI_TAG_IR_TEMP_DATA_CONF_ID_128)){
+                    BluetoothGattCharacteristic cIrTemp = gatt.getService(TI_TAG_IR_TEMP_SERVICE_ID_128).getCharacteristic(TI_TAG_IR_TEMP_DATA_READ_ID_128);
+                    gatt.readCharacteristic(cIrTemp);
+                }
+                if(characteristic.getUuid().equals(TI_TAG_LIGHT_DATA_CONF_ID_128)){
+                    BluetoothGattCharacteristic cLight = gatt.getService(TI_TAG_LIGHT_SERVICE_ID_128).getCharacteristic(TI_TAG_LIGHT_DATA_READ_ID_128);
+                    gatt.readCharacteristic(cLight);
+                }
+            }
         }
     };
+
+
 }
+
+// get Battery -> write Humidity & Temperature -> read Humidity & Temperature  -> write IR and Ambient -> read IR and Ambient-> write Light Characteristic -> read Light Characteristic ->
