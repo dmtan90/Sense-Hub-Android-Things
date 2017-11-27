@@ -19,11 +19,11 @@ public class Sp3Connector extends BroadlinkConnector {
     public boolean setState(boolean state){
         Log.i(TAG, "setState=" + state);
         int len = 16;
-        int[] packet = new int[len];
-        Arrays.fill(packet, 0x00);
+        byte[] packet = new byte[len];
+        Arrays.fill(packet, (byte)0x00);
 
         packet[0] = 2;
-        packet[4] = (state == true ? 1 : 0);
+        packet[4] = (byte)((state == true ? 1 : 0));
 
         PacketData inputPacket = new PacketData(packet, len);
         PacketData outData = sendPacket(SP3_CMD_SET_STATE, inputPacket);
@@ -46,8 +46,8 @@ public class Sp3Connector extends BroadlinkConnector {
 
         boolean state = false;
         int len = 16;
-        int[] packet = new int[len];
-        Arrays.fill(packet, 0x00);
+        byte[] packet = new byte[len];
+        Arrays.fill(packet, (byte)0x00);
 
         do
         {
@@ -65,7 +65,7 @@ public class Sp3Connector extends BroadlinkConnector {
             if(err == 0) {
                 //limit decoded data
                 len = outputPacket.getLength() - UDP_PACKAGE_SIZE;
-                packet = new int[len];
+                packet = new byte[len];
 
                 for(int i = 0; i < len; i++) {
                     packet[i] = outputPacket.getBuffer()[UDP_PACKAGE_SIZE + i];

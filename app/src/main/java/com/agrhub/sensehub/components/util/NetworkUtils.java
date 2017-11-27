@@ -15,6 +15,7 @@ import java.net.InetAddress;
 import java.net.InterfaceAddress;
 import java.net.NetworkInterface;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.text.Format;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -26,6 +27,7 @@ import java.util.List;
 
 public class NetworkUtils {
     private static String TAG= "NetworkUtils";
+    private static int mTimeout = 10000;
     /**
      * Returns MAC address of the given interface name.
      * @param ctx is android context
@@ -194,21 +196,33 @@ public class NetworkUtils {
             Log.d(TAG, "serverAddress: " + serverAddress.getHostAddress());
             DatagramPacket packet = new DatagramPacket(payload.getBuffer(), payload.getLength(), serverAddress, port);
             socket.send(packet);
-            try{
-                byte[] data = new byte[1024];
-                packet = new DatagramPacket(data, data.length);
-                socket.setSoTimeout(10000);
-                socket.receive(packet);
-                Log.d(TAG, "sendUdpPacket: length=" + packet.getLength());
-                if(packet.getLength() > 0){
-                    responseData = new PacketData();
-                    responseData.setLength(packet.getLength());
-                    responseData.setBuffer(data);
-                    PacketData.PrintPacket(responseData.getBuffer());
+            byte[] data = new byte[PacketData.MAX_LENGTH];
+            DatagramPacket receivePacket = new DatagramPacket(data, data.length);
+
+            long startTime = System.currentTimeMillis();
+            long elapsed;
+            while ((elapsed = System.currentTimeMillis() - startTime) < mTimeout) {
+                try {
+                    socket.send(packet);
+                    socket.setSoTimeout(1000);
+                    socket.receive(receivePacket);
+                    Log.d(TAG, "sendUdpPacket: length=" + receivePacket.getLength());
+                    if(packet.getLength() > 0){
+                        responseData = new PacketData();
+                        responseData.setLength(receivePacket.getLength());
+                        responseData.setBuffer(data);
+                        PacketData.PrintPacket(responseData.getBuffer());
+                    }
+                    break;
+                } catch (SocketTimeoutException e) {
+                    if (elapsed > mTimeout) {
+                        break;
+                    }
+
+                    continue;
                 }
-            }catch (Exception e){
-                //e.printStackTrace();
             }
+
             socket.close();
         } catch (Exception e) {
             Log.e(TAG, "sendUdpPacket: " + e.getMessage());

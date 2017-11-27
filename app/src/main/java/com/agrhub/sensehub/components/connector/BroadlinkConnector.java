@@ -24,20 +24,20 @@ public class BroadlinkConnector extends Connector {
     static final int KEY_SIZE = 16;
     static final int ID_SIZE = 4;
     static final int BROADLINK_CMD_AUTH = 0x65;
-    static final int[] DEFAULT_KEY = {0x09, 0x76, 0x28, 0x34, 0x3f, 0xe9, 0x9e, 0x23, 0x76, 0x5c, 0x15, 0x13, 0xac, 0xcf, 0x8b, 0x02};
-    static final int[] DEFAULT_IV = {0x56, 0x2e, 0x17, 0x99, 0x6d, 0x09, 0x3d, 0x28, 0xdd, 0xb3, 0xba, 0x69, 0x5a, 0x2e, 0x6f, 0x58};
+    static final byte[] DEFAULT_KEY = {0x09, 0x76, 0x28, 0x34, 0x3f, (byte)0xe9, (byte)0x9e, 0x23, 0x76, 0x5c, 0x15, 0x13, (byte)0xac, (byte)0xcf, (byte)0x8b, 0x02};
+    static final byte[] DEFAULT_IV = {0x56, 0x2e, 0x17, (byte)0x99, 0x6d, 0x09, 0x3d, 0x28, (byte)0xdd, (byte)0xb3, (byte)0xba, 0x69, 0x5a, 0x2e, 0x6f, 0x58};
     static final int UDP_PACKAGE_SIZE = 56;
 
-    private int[] mKey;
-    private int[] mIV;
-    private int[] mID;
+    private byte[] mKey;
+    private byte[] mIV;
+    private byte[] mID;
     private int mPort;
     public BroadlinkConnector(){
         super();
         mKey = DEFAULT_KEY;
         mIV = DEFAULT_IV;
         mPort = 80;
-        mID = new int[ID_SIZE];
+        mID = new byte[ID_SIZE];
         mID[0] = 0;
         mID[1] = 0;
         mID[2] = 0;
@@ -97,7 +97,7 @@ public class BroadlinkConnector extends Connector {
         }
 
         int outLen = outputPacket.getLength() - UDP_PACKAGE_SIZE;
-        int[] outData = outputPacket.getIntBuffer();
+        byte[] outData = outputPacket.getBuffer();
         for(int i = 0; i < outLen; i++){
             payload[i] = outData[UDP_PACKAGE_SIZE + i];
         }
@@ -108,11 +108,11 @@ public class BroadlinkConnector extends Connector {
         if(outputPacket != null){
             rs = true;
             for(int i = 0; i < KEY_SIZE; i++){
-                mKey[i] = outputPacket.getIntBuffer()[0x04+i];
+                mKey[i] = outputPacket.getBuffer()[0x04+i];
             }
 
             for(int i = 0; i < ID_SIZE; i++){
-                mID[i] = outputPacket.getIntBuffer()[i];
+                mID[i] = outputPacket.getBuffer()[i];
             }
         }
 
@@ -150,13 +150,9 @@ public class BroadlinkConnector extends Connector {
         checksum = checksum & 0xffff;
         packet[0x20] = checksum & 0xff;
         packet[0x21] = checksum >> 8;
-        //Log.d(TAG, "discovery- before");
-        //PacketData.PrintPacket(packet);
 
         PacketData inputPacket = new PacketData(packet, len);
 
-        //Log.d(TAG, "discovery- after");
-        //PacketData.PrintPacket(inputPacket.getBuffer());
         PacketData outputPacket = NetworkUtils.sendUdpPacket(getIP(), mPort, inputPacket);
 
         if(outputPacket != null && outputPacket.getLength() < PacketData.MAX_LENGTH){
@@ -183,16 +179,17 @@ public class BroadlinkConnector extends Connector {
     public PacketData encrypt(PacketData input){
         PacketData output = null;
         try {
-            IvParameterSpec iv = new IvParameterSpec(PacketData.ConvertToByteArray(mIV));
-            SecretKeySpec skeySpec = new SecretKeySpec(PacketData.ConvertToByteArray(mKey), "AES");
+            IvParameterSpec iv = new IvParameterSpec(mIV);
+            SecretKeySpec skeySpec = new SecretKeySpec(mKey, "AES");
 
             Cipher cipher = Cipher.getInstance("AES/CBC/NoPadding");
             cipher.init(Cipher.ENCRYPT_MODE, skeySpec, iv);
+            Log.d(TAG, "encrypt - before - length=" + input.getLength());
 
             byte[] encrypted = cipher.doFinal(input.getBuffer());
             System.out.println("encrypted string: "
                     + Base64.encodeBase64String(encrypted));
-
+            Log.d(TAG, "encrypt - after - length=" + input.getLength());
             output = new PacketData(encrypted, encrypted.length);
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -204,8 +201,8 @@ public class BroadlinkConnector extends Connector {
     public PacketData decrypt(PacketData input){
         PacketData output = null;
         try {
-            IvParameterSpec iv = new IvParameterSpec(PacketData.ConvertToByteArray(mIV));
-            SecretKeySpec skeySpec = new SecretKeySpec(PacketData.ConvertToByteArray(mKey), "AES");
+            IvParameterSpec iv = new IvParameterSpec(mIV);
+            SecretKeySpec skeySpec = new SecretKeySpec(mKey, "AES");
 
             Cipher cipher = Cipher.getInstance("AES/CBC/NoPadding");
             cipher.init(Cipher.DECRYPT_MODE, skeySpec, iv);
@@ -224,10 +221,20 @@ public class BroadlinkConnector extends Connector {
         PacketData outputData = null;
         int inputLength = payload.getLength();
         int length = UDP_PACKAGE_SIZE + inputLength;
+        if(length % 16 != 0){
+            length += 16;
+            inputLength += 16;
+            byte[] bytes = new byte[inputLength];
+            Arrays.fill(bytes, (byte)0x00);
+            for(int i = 0; i < payload.getLength(); i++){
+                bytes[i] = payload.getBuffer()[i];
+            }
+            payload = new PacketData(bytes, inputLength);
+        }
         Log.d(TAG, "sendPacket: payload length=" + length);
         int[] packet = new int[length];
         //for example: aa:aa:aa:aa:aa:aa = 61613a61613a61613a61613a61613a6161
-        byte[] mac = getMac().getBytes();
+        String[] sMac = getMac().split(":");
         do
         {
             Arrays.fill(packet, 0x00);
@@ -242,20 +249,19 @@ public class BroadlinkConnector extends Connector {
             packet[0x24] = 0x2a;
             packet[0x25] = 0x27;
             packet[0x26] = cmd;
-            packet[0x2a] = mac[0]|mac[1];
-            packet[0x2b] = mac[3]|mac[4];
-            packet[0x2c] = mac[6]|mac[7];
-            packet[0x2d] = mac[9]|mac[10];
-            packet[0x2e] = mac[12]|mac[13];
-            packet[0x2f] = mac[15]|mac[16];
+            packet[0x2a] = Integer.decode("0x" + sMac[5]);
+            packet[0x2b] = Integer.decode("0x" + sMac[4]);
+            packet[0x2c] = Integer.decode("0x" + sMac[3]);
+            packet[0x2d] = Integer.decode("0x" + sMac[2]);
+            packet[0x2e] = Integer.decode("0x" + sMac[1]);
+            packet[0x2f] = Integer.decode("0x" + sMac[0]);
             packet[0x30] = mID[0];
             packet[0x31] = mID[1];
             packet[0x32] = mID[2];
             packet[0x33] = mID[3];
 
             int checksum = 0xbeaf;
-            for(int i = 0; i < inputLength;i++)
-            {
+            for(int i = 0; i < inputLength;i++) {
                 checksum += payload.getBuffer()[i];
                 checksum = checksum & 0xffff;
             }
@@ -269,7 +275,7 @@ public class BroadlinkConnector extends Connector {
             packet[0x34] = checksum & 0xff;
             packet[0x35] = checksum >> 8;
             Log.d(TAG, "sendPacket: encryptData length=" + inputLength);
-            for(int i = 0; i < inputLength; i++) {
+            for(int i = 0; i < encryptData.getLength(); i++) {
                 packet[UDP_PACKAGE_SIZE + i] = encryptData.getBuffer()[i];
             }
             checksum = 0xbeaf;
@@ -277,6 +283,8 @@ public class BroadlinkConnector extends Connector {
                 checksum += packet[i];
                 checksum = checksum & 0xffff;
             }
+
+            Log.d(TAG, String.format("sendPacket: checksum=%02X", checksum));
 
             packet[0x20] = checksum & 0xff;
             packet[0x21] = checksum >> 8;

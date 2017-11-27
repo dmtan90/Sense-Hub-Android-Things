@@ -223,6 +223,10 @@ public enum WifiManager {
                     }
                 }
             }
+            else{
+                Entity entity = DeviceManager.instance.getDevice(macAddress);
+                entity.updateData();
+            }
         }
 
         List<Entity> mLocalDevices = new ArrayList<>();

@@ -71,6 +71,8 @@ public class WifiSta {
                 else if(SupplicantState.isValidState(state)
                         && state == SupplicantState.DISCONNECTED){
                     Log.d(mTAG, "Wifi STA is disconnected");
+                    WifiManager wifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
+                    wifiManager.reconnect();
                 }
             }
         }
