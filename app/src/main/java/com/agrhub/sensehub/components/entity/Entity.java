@@ -16,6 +16,7 @@ public abstract class Entity {
     private DeviceState mDeviceState;
 
     public Entity(){
+
         this.mMacAddress = "00:00:00:00:00:00";
         this.mDeviceName = DeviceName.DB_DEVICE_NAME_UNKNOWN;
         this.mDeviceType = DeviceType.DB_DEVICE_TYPE_UNKNOWN;

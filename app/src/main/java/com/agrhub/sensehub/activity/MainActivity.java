@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
 
+import com.agrhub.sensehub.components.Connector.BroadLinkConnector;
 import com.agrhub.sensehub.components.ble.BLEManager;
 import com.agrhub.sensehub.components.config.Config;
 import com.agrhub.sensehub.components.devicemanager.DeviceManager;
@@ -39,6 +40,7 @@ public class MainActivity extends Activity {
         DeviceManager.instance.setContext(this);
         WifiManager.instance.init(this);
         BLEManager.instance.init(this);
+
         try {
             mServer = new WebService(this);
         }catch (Exception e){

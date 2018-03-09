@@ -47,7 +47,8 @@ public enum BLEManager {
         public void onLeScan(BluetoothDevice device, int rssi, byte[] scanRecord) {
             // Add the name and address to an array adapter to show in a Toast
             String derp = device.getName() + " - " + device.getAddress();
-            Log.d(mTAG, "Bluetooth device: " + derp);
+
+                Log.d(mTAG, "Bluetooth device: " + derp);
             Entity bleDevice = DeviceManager.instance.getDevice(device.getAddress());
             if(bleDevice == null){
                 bleDevice = initDevice(device.getName());
@@ -76,28 +77,17 @@ public enum BLEManager {
                         int mBattery = new Byte(scanRecord[11]).intValue();
                         int mTemperature = new Byte(scanRecord[12]).intValue();
                         int mHumidity = new Byte(scanRecord[13]).intValue();
-                        Log.d(mTAG, String.format("Axaet data=%d-%d-%d", mBattery, mTemperature, mHumidity));
+                        Log.d(mTAG, String.format("pBeacon data=%d-%d-%d", mBattery, mTemperature, mHumidity));
                         ((AxaetSensorEntity)bleDevice).setBattery(mBattery);
                         ((AxaetSensorEntity)bleDevice).setAirTemperature(mTemperature);
                         ((AxaetSensorEntity)bleDevice).setAirHumidity(mHumidity);
                     }
                 }
             }
-//            if(bleDevice.getDeviceName().getValue() == DeviceName.DB_DEVICE_NAME_MI_FLORA.getValue()){
-//                if(scanRecord != null && scanRecord.length >= 32){
 //
-//                    Log.d(mTAG,String.format("MIFLORA data=%d-%d-%d-%d",))
-//
-//                }
-//
-//            }
-
-            //Log.d(mTAG, "BLE data=" + bleDevice.toString());
         }
     };
-    //private BleBroadcastReceiver mReceiver;
 
-    // Stops scanning after 10 seconds.
     private static final long SCAN_PERIOD = 10000;
 
     private Context mContext = null;

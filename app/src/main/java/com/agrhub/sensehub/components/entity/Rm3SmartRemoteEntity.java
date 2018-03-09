@@ -51,6 +51,7 @@ public class Rm3SmartRemoteEntity extends Sp3SmartPlugEntity {
 
     @Override
     public void updateData() {
-        super.updateData();
+
+
     }
 }

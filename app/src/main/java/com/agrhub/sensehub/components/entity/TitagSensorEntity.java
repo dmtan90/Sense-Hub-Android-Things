@@ -181,9 +181,9 @@ public class TitagSensorEntity extends AxaetSensorEntity {
 
 
                         // Ligh converter
-                        int rawdata = (data[0]|(data[1]<<8));
-                        int m = rawdata & 0x0FFF;
-                        int e = (rawdata & 0xF000) >> 12;
+                        int rawData = (data[0]|(data[1]<<8));
+                        int m = rawData & 0x0FFF;
+                        int e = (rawData & 0xF000) >> 12;
                         e = (e == 0) ? 1 : 2 << (e - 1);
                         mLight = (int)(m * (0.01 * e));
                         gatt.close();
